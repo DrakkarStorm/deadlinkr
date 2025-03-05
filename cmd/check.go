@@ -1,0 +1,43 @@
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/EnzoDechaene/deadlinkr/model"
+	"github.com/EnzoDechaene/deadlinkr/utils"
+	"github.com/spf13/cobra"
+)
+
+// deadlinkr check [url] - Vérifier une seule page
+var checkCmd = &cobra.Command{
+	Use:   "check [url]",
+	Short: "Vérifier une seule page",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		pageURL := args[0]
+
+		// Initialize
+		model.Results = []model.LinkResult{}
+		// model.VisitedURLs = make(map[string]bool)
+		// model.Semaphore = make(chan struct{}, model.Concurrency)
+
+		fmt.Printf("Checking links on %s\n", pageURL)
+
+		// Check single page without recursion
+		utils.CheckLinks(pageURL, pageURL)
+
+		fmt.Printf("Check complete. Found %d links, %d broken.\n", len(model.Results), utils.CountBrokenLinks())
+
+		if model.Format != "" {
+			utils.ExportResults(model.Format)
+		} else {
+			utils.DisplayResults()
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(checkCmd)
+
+	checkCmd.Flags().String("format", "", "Export format (csv, json, html)")
+}
