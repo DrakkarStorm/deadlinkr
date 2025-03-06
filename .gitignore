@@ -1,0 +1,7 @@
+build/
+coverage/
+*.log
+*.tmp
+*.tmp.*
+*.tmp~
+*.tmp~.*
