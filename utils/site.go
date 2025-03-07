@@ -152,7 +152,7 @@ func extractLinks(baseUrlParsed *url.URL, pageURL string, doc *goquery.Document)
 }
 
 func resolveAndFilterURL(baseUrlParsed *url.URL, pageURL, href string) *url.URL {
-	linkURL, err := resolveURL(baseUrlParsed, pageURL, href)
+	linkURL, err := resolveURL(pageURL, href)
 	if err != nil || shouldSkipURL(baseUrlParsed, linkURL) {
 		return nil
 	}

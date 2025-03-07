@@ -8,7 +8,7 @@ import (
 	"github.com/DrakkarStorm/deadlinkr/model"
 )
 
-func resolveURL(baseUrlParsed *url.URL, pageURL, href string) (*url.URL, error) {
+func resolveURL(pageURL, href string) (*url.URL, error) {
 	hrefURL, err := url.Parse(href)
 	if err != nil {
 		return nil, err
@@ -33,6 +33,7 @@ func shouldSkipURL(baseURL, linkURL *url.URL) bool {
 
 	return false
 }
+
 func checkLink(linkURL string) (int, string) {
 	client := &http.Client{
 		Timeout: time.Duration(model.Timeout) * time.Second,

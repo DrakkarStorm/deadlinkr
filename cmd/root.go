@@ -13,11 +13,6 @@ var rootCmd = &cobra.Command{
 	Use:   "deadlinkr",
 	Short: "A brief description of your application",
 	Long:  ``,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) {
-	// 	fmt.Println("Hugo Static Site Generator v0.9 -- HEAD")
-	// },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

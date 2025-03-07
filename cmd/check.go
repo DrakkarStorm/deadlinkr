@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// deadlinkr check [url] - Vérifier une seule page
+// checkCmd represents the check command
 var checkCmd = &cobra.Command{
 	Use:   "check [url]",
 	Short: "Vérifier une seule page",
@@ -37,5 +37,6 @@ var checkCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(checkCmd)
 
+	// Define a flag for the export format
 	checkCmd.Flags().String("format", "", "Export format (csv, json, html)")
 }
