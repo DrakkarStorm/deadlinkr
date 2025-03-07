@@ -134,7 +134,7 @@ func extractLinks(baseUrlParsed *url.URL, pageURL string, doc *goquery.Document)
 			return
 		}
 
-		status, errMsg := checkLink(linkURL.String())
+		status, errMsg := CheckLink(linkURL.String())
 
 		linkResult := model.LinkResult{
 			SourceURL:  pageURL,
@@ -152,8 +152,8 @@ func extractLinks(baseUrlParsed *url.URL, pageURL string, doc *goquery.Document)
 }
 
 func resolveAndFilterURL(baseUrlParsed *url.URL, pageURL, href string) *url.URL {
-	linkURL, err := resolveURL(pageURL, href)
-	if err != nil || shouldSkipURL(baseUrlParsed, linkURL) {
+	linkURL, err := ResolveURL(pageURL, href)
+	if err != nil || ShouldSkipURL(baseUrlParsed, linkURL) {
 		return nil
 	}
 	return linkURL
