@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EnzoDechaene/deadlinkr/model"
+	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/PuerkitoBio/goquery"
 	// Import the main package
 )
@@ -29,15 +29,21 @@ func Crawl(baseURL, currentURL string, currentDepth int) {
 
 	// Increment wait group
 	model.Wg.Add(1)
+	// Start a new goroutine for asynchronous crawling
 	go func(url string, d int) {
+		// Decrement the wait group when this goroutine completes
 		defer model.Wg.Done()
 
+		// Check the links on the current page
 		links := CheckLinks(baseURL, url)
 
-		// Recursive crawling for internal links
+		// If the current depth is less than the maximum depth, continue crawling
 		if d < model.Depth {
+			// Iterate over each link found on the current page
 			for _, link := range links {
+				// Only recursively crawl internal links
 				if !link.IsExternal {
+					// Start a new goroutine for each internal link to crawl it
 					go Crawl(baseURL, link.TargetURL, d+1)
 				}
 			}
@@ -48,20 +54,38 @@ func Crawl(baseURL, currentURL string, currentDepth int) {
 func CheckLinks(baseURL, pageURL string) []model.LinkResult {
 	pageLinks := []model.LinkResult{}
 
-	baseUrlParsed, err := url.Parse(baseURL)
-	if err != nil {
-		fmt.Printf("Error parsing base URL %s: %s\n", baseURL, err)
+	baseUrlParsed := parseBaseURL(baseURL)
+	if baseUrlParsed == nil {
 		return pageLinks
 	}
 
+	doc := fetchAndParseDocument(pageURL)
+	if doc == nil {
+		return pageLinks
+	}
+
+	pageLinks = extractLinks(baseUrlParsed, pageURL, doc)
+	return pageLinks
+}
+
+func parseBaseURL(baseURL string) *url.URL {
+	baseUrlParsed, err := url.Parse(baseURL)
+	if err != nil {
+		fmt.Printf("Error parsing base URL %s: %s\n", baseURL, err)
+		return nil
+	}
+	return baseUrlParsed
+}
+
+func fetchAndParseDocument(pageURL string) *goquery.Document {
 	client := &http.Client{
 		Timeout: time.Duration(model.Timeout) * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", pageURL, nil)
+	req, err := http.NewRequest(http.MethodGet, pageURL, nil)
 	if err != nil {
 		fmt.Printf("Error creating request for %s: %s\n", pageURL, err)
-		return pageLinks
+		return nil
 	}
 
 	req.Header.Set("User-Agent", model.UserAgent)
@@ -69,35 +93,34 @@ func CheckLinks(baseURL, pageURL string) []model.LinkResult {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Error fetching %s: %s\n", pageURL, err)
-		return pageLinks
+		return nil
 	}
 	defer resp.Body.Close()
 
-	// Only parse HTML responses
 	if !strings.Contains(resp.Header.Get("Content-Type"), "text/html") {
-		return pageLinks
+		return nil
 	}
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		fmt.Printf("Error parsing HTML from %s: %s\n", pageURL, err)
-		return pageLinks
+		return nil
 	}
 
-	// Find all links
+	return doc
+}
+
+func extractLinks(baseUrlParsed *url.URL, pageURL string, doc *goquery.Document) []model.LinkResult {
+	pageLinks := []model.LinkResult{}
+
 	doc.Find("a[href]").Each(func(i int, s *goquery.Selection) {
 		href, exists := s.Attr("href")
 		if !exists || href == "" || strings.HasPrefix(href, "#") {
 			return
 		}
 
-		linkURL, err := resolveURL(baseUrlParsed, pageURL, href)
-		if err != nil {
-			return
-		}
-
-		// Apply filters
-		if shouldSkipURL(baseUrlParsed, linkURL) {
+		linkURL := resolveAndFilterURL(baseUrlParsed, pageURL, href)
+		if linkURL == nil {
 			return
 		}
 
@@ -107,22 +130,10 @@ func CheckLinks(baseURL, pageURL string) []model.LinkResult {
 			return
 		}
 
-		// Apply regex patterns if specified
-		if model.IncludePattern != "" {
-			matched, err := regexp.MatchString(model.IncludePattern, linkURL.String())
-			if err != nil || !matched {
-				return
-			}
+		if shouldSkipURLBasedOnPattern(linkURL) {
+			return
 		}
 
-		if model.ExcludePattern != "" {
-			matched, err := regexp.MatchString(model.ExcludePattern, linkURL.String())
-			if err == nil && matched {
-				return
-			}
-		}
-
-		// Check the link
 		status, errMsg := checkLink(linkURL.String())
 
 		linkResult := model.LinkResult{
@@ -134,11 +145,40 @@ func CheckLinks(baseURL, pageURL string) []model.LinkResult {
 		}
 
 		pageLinks = append(pageLinks, linkResult)
-
-		model.ResultsMutex.Lock()
-		model.Results = append(model.Results, linkResult)
-		model.ResultsMutex.Unlock()
+		addLinkResultToModel(linkResult)
 	})
 
 	return pageLinks
+}
+
+func resolveAndFilterURL(baseUrlParsed *url.URL, pageURL, href string) *url.URL {
+	linkURL, err := resolveURL(baseUrlParsed, pageURL, href)
+	if err != nil || shouldSkipURL(baseUrlParsed, linkURL) {
+		return nil
+	}
+	return linkURL
+}
+
+func shouldSkipURLBasedOnPattern(linkURL *url.URL) bool {
+	if model.IncludePattern != "" {
+		matched, err := regexp.MatchString(model.IncludePattern, linkURL.String())
+		if err != nil || !matched {
+			return true
+		}
+	}
+
+	if model.ExcludePattern != "" {
+		matched, err := regexp.MatchString(model.ExcludePattern, linkURL.String())
+		if err == nil && matched {
+			return true
+		}
+	}
+
+	return false
+}
+
+func addLinkResultToModel(linkResult model.LinkResult) {
+	model.ResultsMutex.Lock()
+	model.Results = append(model.Results, linkResult)
+	model.ResultsMutex.Unlock()
 }

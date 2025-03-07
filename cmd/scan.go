@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/EnzoDechaene/deadlinkr/model"
-	"github.com/EnzoDechaene/deadlinkr/utils"
+	"github.com/DrakkarStorm/deadlinkr/model"
+	"github.com/DrakkarStorm/deadlinkr/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,9 +29,11 @@ var scanCmd = &cobra.Command{
 
 		fmt.Printf("Scan complete. Found %d links, %d broken.\n", len(model.Results), utils.CountBrokenLinks())
 
-		fmt.Println("Exporting results to", model.Format)
 		if model.Format != "" {
+			fmt.Println("Exporting results to", model.Format)
 			utils.ExportResults(model.Format)
+		} else {
+			utils.DisplayResults()
 		}
 	},
 }

@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/EnzoDechaene/deadlinkr/model"
-	"github.com/EnzoDechaene/deadlinkr/utils"
+	"github.com/DrakkarStorm/deadlinkr/model"
+	"github.com/DrakkarStorm/deadlinkr/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +18,6 @@ var checkCmd = &cobra.Command{
 
 		// Initialize
 		model.Results = []model.LinkResult{}
-		// model.VisitedURLs = make(map[string]bool)
-		// model.Semaphore = make(chan struct{}, model.Concurrency)
 
 		fmt.Printf("Checking links on %s\n", pageURL)
 

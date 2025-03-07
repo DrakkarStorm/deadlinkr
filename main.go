@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/EnzoDechaene/deadlinkr/cmd"
+	"github.com/DrakkarStorm/deadlinkr/cmd"
 )
 
 func main() {

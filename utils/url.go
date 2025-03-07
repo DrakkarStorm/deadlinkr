@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/EnzoDechaene/deadlinkr/model"
+	"github.com/DrakkarStorm/deadlinkr/model"
 )
 
 func resolveURL(baseUrlParsed *url.URL, pageURL, href string) (*url.URL, error) {

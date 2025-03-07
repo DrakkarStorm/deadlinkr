@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/EnzoDechaene/deadlinkr/model"
+	"github.com/DrakkarStorm/deadlinkr/model"
 )
 
 func DisplayResults() {

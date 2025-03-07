@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/EnzoDechaene/deadlinkr/model"
+	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/spf13/cobra"
 )
 

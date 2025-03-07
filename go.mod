@@ -1,4 +1,4 @@
-module github.com/EnzoDechaene/deadlinkr
+module github.com/DrakkarStorm/deadlinkr
 
 go 1.24.0
 

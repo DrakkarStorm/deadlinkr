@@ -13,10 +13,8 @@ Cet outil permet de scanner un site web pour identifier les liens cassés (dead 
 ## Usage
 ### Structure de commandes possible avec Cobra
 ```
-Copydeadlinkr scan [url] - Scanner un site web complet
-deadlinkr check [url] - Vérifier une seule page
-deadlinkr report - Afficher les résultats du dernier scan
-deadlinkr export --format=csv/json/html - Exporter les résultats
+Copydeadlinkr scan [url] --format=csv/json/html - Scanner un site web complet
+deadlinkr check [url] --format=csv/json/html - Vérifier une seule page
 ```
 
 ### Options et flags
