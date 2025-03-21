@@ -65,6 +65,7 @@ func CheckLinks(baseURL, pageURL string) []model.LinkResult {
 	}
 
 	pageLinks = extractLinks(baseUrlParsed, pageURL, doc)
+	fmt.Printf("Found %d links on %s\n", len(pageLinks), pageURL)
 	return pageLinks
 }
 
@@ -72,6 +73,10 @@ func parseBaseURL(baseURL string) *url.URL {
 	baseUrlParsed, err := url.Parse(baseURL)
 	if err != nil {
 		fmt.Printf("Error parsing base URL %s: %s\n", baseURL, err)
+		return nil
+	}
+	if baseUrlParsed.Host == "" {
+		fmt.Printf("Error parsing base URL %s: no host found\n", baseURL)
 		return nil
 	}
 	return baseUrlParsed
