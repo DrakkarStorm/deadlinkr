@@ -50,6 +50,9 @@ lint:
 # Tests
 .PHONY: test
 test:
+	@echo "🚀 Déploiement de la documentation..."
+	@$(GO) run ./tests/html_static.go
+	@echo "⚡︎ Démarrage du serveur de documentation sur http://localhost:8085"
 	@echo "🧪 Exécution des tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@$(GO) test -v -covermode=atomic -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
