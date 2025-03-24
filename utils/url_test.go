@@ -1,4 +1,4 @@
-package utils_test
+package utils
 
 import (
 	"net/http"
@@ -6,10 +6,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/DrakkarStorm/deadlinkr/model"
-	"github.com/DrakkarStorm/deadlinkr/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestResolveURL tests the resolveURL function
@@ -24,32 +22,32 @@ func TestResolveURL(t *testing.T) {
 	}{
 		{
 			name:        "Absolute URL",
-			baseURL:     "http://example.com",
-			pageURL:     "http://example.com/page",
-			href:        "http://other.com/page",
-			expectedURL: "http://other.com/page",
+			baseURL:     "http://127.0.0.1:8085",
+			pageURL:     "http://127.0.0.1:8085/installation.html",
+			href:        "https://github.com/",
+			expectedURL: "https://github.com/",
 			expectError: false,
 		},
 		{
 			name:        "Relative URL",
-			baseURL:     "http://example.com",
-			pageURL:     "http://example.com/page/",
-			href:        "subpage.html",
-			expectedURL: "http://example.com/page/subpage.html",
+			baseURL:     "http://127.0.0.1:8085",
+			pageURL:     "http://127.0.0.1:8085/installation.html",
+			href:        "tutoriel.html",
+			expectedURL: "http://127.0.0.1:8085/tutoriel.html",
 			expectError: false,
 		},
 		{
 			name:        "Root-relative URL",
-			baseURL:     "http://example.com",
-			pageURL:     "http://example.com/page/subpage.html",
-			href:        "/about",
-			expectedURL: "http://example.com/about",
+			baseURL:     "http://127.0.0.1:8085",
+			pageURL:     "http://127.0.0.1:8085/tutoriel.html",
+			href:        "/index.html",
+			expectedURL: "http://127.0.0.1:8085/index.html",
 			expectError: false,
 		},
 		{
 			name:        "Invalid href",
-			baseURL:     "http://example.com",
-			pageURL:     "http://example.com/page",
+			baseURL:     "http://127.0.0.1:8085",
+			pageURL:     "http://127.0.0.1:8085/page",
 			href:        ":%invalid",
 			expectError: true,
 		},
@@ -57,7 +55,7 @@ func TestResolveURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resolvedURL, err := utils.ResolveURL(tc.pageURL, tc.href)
+			resolvedURL, err := ResolveURL(tc.pageURL, tc.href)
 
 			if tc.expectError {
 				assert.Error(t, err)
@@ -79,31 +77,31 @@ func TestShouldSkipURL(t *testing.T) {
 	}{
 		{
 			name:     "HTTP URL",
-			baseURL:  "http://example.com",
+			baseURL:  "http://127.0.0.1:8085",
 			linkURL:  "http://other.com",
 			expected: false,
 		},
 		{
 			name:     "HTTPS URL",
-			baseURL:  "http://example.com",
+			baseURL:  "http://127.0.0.1:8085",
 			linkURL:  "https://other.com",
 			expected: false,
 		},
 		{
 			name:     "Mailto URL",
-			baseURL:  "http://example.com",
+			baseURL:  "http://127.0.0.1:8085",
 			linkURL:  "mailto:user@example.com",
 			expected: true,
 		},
 		{
 			name:     "Tel URL",
-			baseURL:  "http://example.com",
+			baseURL:  "http://127.0.0.1:8085",
 			linkURL:  "tel:1234567890",
 			expected: true,
 		},
 		{
 			name:     "JavaScript URL",
-			baseURL:  "http://example.com",
+			baseURL:  "http://127.0.0.1:8085",
 			linkURL:  "javascript:void(0)",
 			expected: true,
 		},
@@ -113,7 +111,7 @@ func TestShouldSkipURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			baseURL, _ := url.Parse(tc.baseURL)
 			linkURL, _ := url.Parse(tc.linkURL)
-			result := utils.ShouldSkipURL(baseURL, linkURL)
+			result := ShouldSkipURL(baseURL, linkURL)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
@@ -171,7 +169,7 @@ func TestCheckLink(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			status, errMsg := utils.CheckLink(tc.url)
+			status, errMsg := CheckLink(tc.url)
 
 			if tc.expectedError != "" {
 				assert.NotEmpty(t, errMsg)
@@ -237,7 +235,7 @@ func TestCountBrokenLinks(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			model.Results = tc.results
-			count := utils.CountBrokenLinks()
+			count := CountBrokenLinks()
 			assert.Equal(t, tc.expected, count)
 		})
 	}

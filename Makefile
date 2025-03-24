@@ -51,11 +51,12 @@ lint:
 .PHONY: test
 test:
 	@echo "🚀 Déploiement de la documentation..."
-	@$(GO) run ./tests/html_static.go
+	@$(GO) run ./tests/html_static.go &
+	@sleep 1
 	@echo "⚡︎ Démarrage du serveur de documentation sur http://localhost:8085"
 	@echo "🧪 Exécution des tests..."
 	@mkdir -p $(COVERAGE_DIR)
-	@$(GO) test -v -covermode=atomic -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
+	@$(GO) test -covermode=atomic -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
 
 # Générer le rapport de couverture
 .PHONY: coverage

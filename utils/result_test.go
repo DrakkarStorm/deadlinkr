@@ -1,41 +1,31 @@
-package utils_test
+package utils
 
 import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 
+	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/DrakkarStorm/deadlinkr/model"
-	"github.com/DrakkarStorm/deadlinkr/utils"
 )
 
-// Mock model for testing
-type mockLinkResult struct {
-	SourceURL  string
-	TargetURL  string
-	Status     int
-	Error      string
-	IsExternal bool
-}
+const SOURCE_URL = "http://127.0.0.1:8085"
 
 // Helper function to set up test environment
 func setupTest() func() {
 	// Save original model.Results
 	originalResults := model.Results
-	originalVisitedURLs := model.VisitedURLs
+	// originalVisitedURLs := model.VisitedURLs
 	originalDepth := model.Depth
 	originalTimeout := model.Timeout
 	originalUserAgent := model.UserAgent
-	originalWg := model.Wg
+	// originalWg := model.Wg
 
 	// Set up test environment
 	model.Results = []model.LinkResult{}
@@ -48,11 +38,11 @@ func setupTest() func() {
 	// Return a function to restore original state
 	return func() {
 		model.Results = originalResults
-		model.VisitedURLs = originalVisitedURLs
+		// model.VisitedURLs = originalVisitedURLs
 		model.Depth = originalDepth
 		model.Timeout = originalTimeout
 		model.UserAgent = originalUserAgent
-		model.Wg = originalWg
+		// model.Wg = originalWg
 
 		// Clean up test files
 		os.Remove("deadlinkr-report.csv")
@@ -79,25 +69,25 @@ func TestDisplayResults(t *testing.T) {
 		{
 			name: "With error links",
 			results: []model.LinkResult{
-				{SourceURL: "http://example.com", TargetURL: "http://broken.com", Status: 0, Error: "connection error"},
+				{SourceURL: SOURCE_URL, TargetURL: "http://broken.com", Status: 0, Error: "connection error"},
 			},
-			expected: "Broken links:\n=============\n- http://broken.com (from http://example.com): Error: connection error",
+			expected: "Broken links:\n=============\n- http://broken.com (from http://127.0.0.1:8085): Error: connection error",
 		},
 		{
 			name: "With status error links",
 			results: []model.LinkResult{
-				{SourceURL: "http://example.com", TargetURL: "http://broken.com", Status: 404, Error: ""},
+				{SourceURL: SOURCE_URL, TargetURL: "http://broken.com", Status: 404, Error: ""},
 			},
-			expected: "Broken links:\n=============\n- http://broken.com (from http://example.com): Status: 404",
+			expected: "Broken links:\n=============\n- http://broken.com (from http://127.0.0.1:8085): Status: 404",
 		},
 		{
 			name: "Mixed links",
 			results: []model.LinkResult{
-				{SourceURL: "http://example.com", TargetURL: "http://good.com", Status: 200, Error: ""},
-				{SourceURL: "http://example.com", TargetURL: "http://broken.com", Status: 404, Error: ""},
-				{SourceURL: "http://example.com", TargetURL: "http://error.com", Status: 0, Error: "timeout"},
+				{SourceURL: SOURCE_URL, TargetURL: "http://127.0.0.1:8085", Status: 200, Error: ""},
+				{SourceURL: SOURCE_URL, TargetURL: "http://broken.com", Status: 404, Error: ""},
+				{SourceURL: SOURCE_URL, TargetURL: "http://error.com", Status: 0, Error: "timeout"},
 			},
-			expected: "Broken links:\n=============\n- http://broken.com (from http://example.com): Status: 404\n- http://error.com (from http://example.com): Error: timeout",
+			expected: "Broken links:\n=============\n- http://broken.com (from http://127.0.0.1:8085): Status: 404\n- http://error.com (from http://127.0.0.1:8085): Error: timeout",
 		},
 	}
 
@@ -113,12 +103,16 @@ func TestDisplayResults(t *testing.T) {
 			model.Results = tc.results
 
 			// Call function
-			utils.DisplayResults()
+			DisplayResults()
 
 			// Restore stdout and get output
 			w.Close()
 			os.Stdout = origStdout
-			io.Copy(&buf, r)
+			_, err := io.Copy(&buf, r)
+			if err != nil {
+				t.Fatalf("Failed to read output: %v", err)
+			}
+
 			output := strings.TrimSpace(buf.String())
 
 			// Verify output
@@ -134,9 +128,9 @@ func TestExportToCSV(t *testing.T) {
 
 	// Set up test data
 	model.Results = []model.LinkResult{
-		{SourceURL: "http://example.com", TargetURL: "http://good.com", Status: 200, Error: "", IsExternal: false},
-		{SourceURL: "http://example.com", TargetURL: "http://broken.com", Status: 404, Error: "", IsExternal: true},
-		{SourceURL: "http://example.com", TargetURL: "http://error.com", Status: 0, Error: "timeout", IsExternal: true},
+		{SourceURL: SOURCE_URL, TargetURL: "http://127.0.0.1:8085", Status: 200, Error: "", IsExternal: false},
+		{SourceURL: SOURCE_URL, TargetURL: "http://broken.com", Status: 404, Error: "", IsExternal: true},
+		{SourceURL: SOURCE_URL, TargetURL: "http://error.com", Status: 0, Error: "timeout", IsExternal: true},
 	}
 
 	// Capture output
@@ -146,15 +140,16 @@ func TestExportToCSV(t *testing.T) {
 	os.Stdout = w
 
 	// Call exportToCSV (we need to use ExportResults since exportToCSV is private)
-	utils.ExportResults("csv")
+	ExportResults("csv")
 
 	// Restore stdout
 	w.Close()
 	os.Stdout = oldStdout
-	io.Copy(&buf, r)
+	_, err := io.Copy(&buf, r)
+	require.NoError(t, err)
 
 	// Verify file was created
-	_, err := os.Stat("deadlinkr-report.csv")
+	_, err = os.Stat("deadlinkr-report.csv")
 	require.NoError(t, err, "CSV file should be created")
 
 	// Read and verify file content
@@ -170,19 +165,19 @@ func TestExportToCSV(t *testing.T) {
 	assert.Equal(t, []string{"Source URL", "Target URL", "Status", "Error", "Is External"}, records[0])
 
 	// Verify data rows
-	assert.Equal(t, "http://example.com", records[1][0])
-	assert.Equal(t, "http://good.com", records[1][1])
+	assert.Equal(t, SOURCE_URL, records[1][0])
+	assert.Equal(t, "http://127.0.0.1:8085", records[1][1])
 	assert.Equal(t, "200", records[1][2])
 	assert.Equal(t, "", records[1][3])
 	assert.Equal(t, "false", records[1][4])
 
-	assert.Equal(t, "http://example.com", records[2][0])
+	assert.Equal(t, SOURCE_URL, records[2][0])
 	assert.Equal(t, "http://broken.com", records[2][1])
 	assert.Equal(t, "404", records[2][2])
 	assert.Equal(t, "", records[2][3])
 	assert.Equal(t, "true", records[2][4])
 
-	assert.Equal(t, "http://example.com", records[3][0])
+	assert.Equal(t, SOURCE_URL, records[3][0])
 	assert.Equal(t, "http://error.com", records[3][1])
 	assert.Equal(t, "0", records[3][2])
 	assert.Equal(t, "timeout", records[3][3])
@@ -196,8 +191,8 @@ func TestExportToJSON(t *testing.T) {
 
 	// Set up test data
 	model.Results = []model.LinkResult{
-		{SourceURL: "http://example.com", TargetURL: "http://good.com", Status: 200, Error: "", IsExternal: false},
-		{SourceURL: "http://example.com", TargetURL: "http://broken.com", Status: 404, Error: "", IsExternal: true},
+		{SourceURL: SOURCE_URL, TargetURL: "http://127.0.0.1:8085", Status: 200, Error: "", IsExternal: false},
+		{SourceURL: SOURCE_URL, TargetURL: "http://broken.com", Status: 404, Error: "", IsExternal: true},
 	}
 
 	// Capture output
@@ -207,19 +202,20 @@ func TestExportToJSON(t *testing.T) {
 	os.Stdout = w
 
 	// Call exportToJSON (we need to use ExportResults since exportToJSON is private)
-	utils.ExportResults("json")
+	ExportResults("json")
 
 	// Restore stdout
 	w.Close()
 	os.Stdout = oldStdout
-	io.Copy(&buf, r)
+	_, err := io.Copy(&buf, r)
+	require.NoError(t, err)
 
 	// Verify file was created
-	_, err := os.Stat("deadlinkr-report.json")
+	_, err = os.Stat("deadlinkr-report.json")
 	require.NoError(t, err, "JSON file should be created")
 
 	// Read and verify file content
-	fileContent, err := ioutil.ReadFile("deadlinkr-report.json")
+	fileContent, err := os.ReadFile("deadlinkr-report.json")
 	require.NoError(t, err)
 
 	var results []model.LinkResult
@@ -228,13 +224,13 @@ func TestExportToJSON(t *testing.T) {
 
 	// Verify content
 	assert.Equal(t, 2, len(results))
-	assert.Equal(t, "http://example.com", results[0].SourceURL)
-	assert.Equal(t, "http://good.com", results[0].TargetURL)
+	assert.Equal(t, SOURCE_URL, results[0].SourceURL)
+	assert.Equal(t, "http://127.0.0.1:8085", results[0].TargetURL)
 	assert.Equal(t, 200, results[0].Status)
 	assert.Equal(t, "", results[0].Error)
 	assert.Equal(t, false, results[0].IsExternal)
 
-	assert.Equal(t, "http://example.com", results[1].SourceURL)
+	assert.Equal(t, SOURCE_URL, results[1].SourceURL)
 	assert.Equal(t, "http://broken.com", results[1].TargetURL)
 	assert.Equal(t, 404, results[1].Status)
 	assert.Equal(t, "", results[1].Error)
@@ -253,12 +249,13 @@ func TestExportResults(t *testing.T) {
 	os.Stdout = w
 
 	// Test with unsupported format
-	utils.ExportResults("xml")
+	ExportResults("xml")
 
 	// Restore stdout and read output
 	w.Close()
 	os.Stdout = oldStdout
-	io.Copy(&buf, r)
+	_, err := io.Copy(&buf, r)
+	require.NoError(t, err, "Failed to read output")
 	output := buf.String()
 
 	// Verify error message for unsupported format
