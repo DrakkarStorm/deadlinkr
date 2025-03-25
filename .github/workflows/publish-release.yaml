@@ -7,8 +7,11 @@ on:
       - 'v*.*.*'
 
 jobs:
+  build:
+    uses: .github/workflows/build-artifact.yaml
+    secrets: inherit
   release:
-    needs: build
+    needs: [build]
     runs-on: ubuntu-24.04
 
     steps:
