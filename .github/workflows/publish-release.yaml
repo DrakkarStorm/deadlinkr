@@ -8,9 +8,10 @@ on:
 
 jobs:
   build:
+    name: Build Artifacts
     uses: ./.github/workflows/build-artifact.yaml
   release:
-    needs: [build]
+    needs: build
     runs-on: ubuntu-24.04
 
     steps:
