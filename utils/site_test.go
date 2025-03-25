@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 
@@ -14,6 +15,10 @@ import (
 )
 
 func TestCheckLinks(t *testing.T) {
+	githubActionString := ""
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		githubActionString = " on 127.0.0.53:53"
+	}
 	tests := []struct {
 		name      string
 		baseURL   string
@@ -91,7 +96,7 @@ func TestCheckLinks(t *testing.T) {
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://non-existent-domain-123456.xyz/",
 					Status:     0,
-					Error:      "Head \"https://non-existent-domain-123456.xyz/\": dial tcp: lookup non-existent-domain-123456.xyz: no such host",
+					Error:      "Head \"https://non-existent-domain-123456.xyz/\": dial tcp: lookup non-existent-domain-123456.xyz"+githubActionString+": no such host",
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
@@ -102,7 +107,7 @@ func TestCheckLinks(t *testing.T) {
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://another-wrong-domain.org/docs",
 					Status:     0,
-					Error:      "Head \"https://another-wrong-domain.org/docs\": dial tcp: lookup another-wrong-domain.org: no such host",
+					Error:      "Head \"https://another-wrong-domain.org/docs\": dial tcp: lookup another-wrong-domain.org"+githubActionString+": no such host",
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
