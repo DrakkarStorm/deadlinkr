@@ -1,4 +1,4 @@
-name: Makefile CI
+name: lint - test - build
 
 on:
   push:
