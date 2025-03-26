@@ -1,42 +1,42 @@
-# Makefile pour DeadLinkr
+# Makefile for deadlinkr
 
-# Variables de configuration
+# configuration variables
 BINARY_NAME=deadlinkr
 GO=go
 GOLANGCI_LINT=golangci-lint
 
-# Répertoires
+# directories
 SRC_DIR=.
 BUILD_DIR=./build
 COVERAGE_DIR=./coverage
 
-# Options de compilation
+# compilation options
 LDFLAGS=-ldflags "-s -w"
 
-# Cible par défaut
+# default target
 .PHONY: all
 all: clean lint test build
 
-# Nettoyer les artefacts de build
+# Clean up build artifacts
 .PHONY: clean
 clean:
-	@echo "🧹 Nettoyage des artefacts de build..."
+	@echo "🧹 Cleaning up build artifacts..."
 	@rm -rf $(BUILD_DIR)
 	@rm -rf $(COVERAGE_DIR)
 	@$(GO) clean -cache
 	@rm -f coverage.out
 
-# Vérifier les dépendances
+# Verify dependencies
 .PHONY: deps
 deps:
-	@echo "📦 Vérification et téléchargement des dépendances..."
+	@echo "📦 Verifying and downloading dependencies..."
 	@$(GO) mod tidy
 	@$(GO) mod verify
 
-# Installer les outils de développement
+# Install development tools
 .PHONY: tools
 tools:
-	@echo "🛠️ Installation des outils de développement..."
+	@echo "🛠️ Installing development tools..."
 	@$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@$(GO) install github.com/axw/gocov/gocov@latest
 	@$(GO) install github.com/matm/gocov-html/cmd/gocov-html@latest
@@ -44,40 +44,39 @@ tools:
 # Linter
 .PHONY: lint
 lint:
-	@echo "🕵️ Analyse statique du code..."
+	@echo "🕵️ Running linter..."
 	@$(GOLANGCI_LINT) run ./...
 
 # Tests
 .PHONY: test
 test:
-	@echo "🚀 Déploiement de la documentation..."
+	@echo "🚀 Starting documentation server on http://localhost:8085"
 	@$(GO) run ./tests/html_static.go &
 	@sleep 1
-	@echo "⚡︎ Démarrage du serveur de documentation sur http://localhost:8085"
-	@echo "🧪 Exécution des tests..."
+	@echo "🧪 Running tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@$(GO) test -v -covermode=atomic -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
 
-# Générer le rapport de couverture
+# Generate coverage report
 .PHONY: coverage
 coverage: test
-	@echo "📊 Génération du rapport de couverture..."
+	@echo "📊 Generating coverage report..."
 	@$(GO) tool cover -func=$(COVERAGE_DIR)/coverage.out
 	@gocov convert $(COVERAGE_DIR)/coverage.out | gocov-html > $(COVERAGE_DIR)/coverage.html
-	@echo "Rapport de couverture généré dans $(COVERAGE_DIR)/coverage.html"
+	@echo "Report generated in $(COVERAGE_DIR)/coverage.html"
 
-# Construire le binaire
+# Build binary
 .PHONY: build
 build:
-	@echo "🏗️ Construction du binaire..."
+	@echo "🏗️ Building binary..."
 	@mkdir -p $(BUILD_DIR)
 	@$(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) $(SRC_DIR)
-	@echo "Binaire construit dans $(BUILD_DIR)/$(BINARY_NAME)"
+	@echo "Binary built in $(BUILD_DIR)/$(BINARY_NAME)"
 
-# Construire pour différentes plateformes
+# Build for all platforms
 .PHONY: build-all
 build-all:
-	@echo "🌍 Construction pour toutes les plateformes..."
+	@echo "🌍 Building for all platforms..."
 	@mkdir -p $(BUILD_DIR)
 
 	# Linux
@@ -91,38 +90,38 @@ build-all:
 	# Windows
 	@GOOS=windows GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe $(SRC_DIR)
 
-	@echo "Binaires construits dans $(BUILD_DIR)"
+	@echo "Binary built in $(BUILD_DIR)"
 
 # Installation
 .PHONY: install
 install: build
-	@echo "📥 Installation du binaire..."
+	@echo "📥 Binary installation..."
 	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
-	@echo "DeadLinkr installé dans /usr/local/bin"
+	@echo "DeadLinkr installed in /usr/local/bin"
 
-# Désinstallation
+# Uninstallation
 .PHONY: uninstall
 uninstall:
-	@echo "🗑️ Désinstallation..."
+	@echo "🗑️ Uninstalling..."
 	@sudo rm -f /usr/local/bin/$(BINARY_NAME)
-	@echo "DeadLinkr désinstallé"
+	@echo "DeadLinkr uninstalled"
 
-# Aide
+# Help
 .PHONY: help
 help:
-	@echo "🚀 DeadLinkr - Makefile Commandes disponibles:"
-	@echo "  make            - Nettoie, lint, teste et construit le projet"
-	@echo "  make deps       - Vérifie les dépendances"
-	@echo "  make tools      - Installe les outils de développement"
-	@echo "  make lint       - Analyse statique du code"
-	@echo "  make test       - Exécute les tests"
-	@echo "  make coverage   - Génère le rapport de couverture de tests"
-	@echo "  make build      - Construit le binaire"
-	@echo "  make build-all  - Construit pour toutes les plateformes"
-	@echo "  make install    - Installe le binaire"
-	@echo "  make uninstall  - Désinstalle le binaire"
-	@echo "  make clean      - Nettoie les artefacts de build"
-	@echo "  make help       - Affiche cette aide"
+	@echo "🚀 DeadLinkr - Makefile Commands Available:"
+	@echo "  make            - Clean, lint, test and build the project"
+	@echo "  make deps       - Check dependencies"
+	@echo "  make tools      - Install development tools"
+	@echo "  make lint       - Static code analysis"
+	@echo "  make test       - Run tests"
+	@echo "  make coverage   - Generate test coverage report"
+	@echo "  make build      - Build the binary"
+	@echo "  make build-all  - Build for all platforms"
+	@echo "  make install    - Install the binary"
+	@echo "  make uninstall  - Uninstall the binary"
+	@echo "  make clean      - Clean build artifacts"
+	@echo "  make help       - Show this help message"
 
-# Défaut
+# Default
 .DEFAULT_GOAL := help

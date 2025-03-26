@@ -11,7 +11,7 @@ import (
 // checkCmd represents the check command
 var checkCmd = &cobra.Command{
 	Use:   "check [url]",
-	Short: "Vérifier une seule page",
+	Short: "Check a single page",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		pageURL := args[0]

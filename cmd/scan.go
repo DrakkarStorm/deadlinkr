@@ -11,7 +11,7 @@ import (
 // scanCmd represents the scan command
 var scanCmd = &cobra.Command{
 	Use:   "scan [url]",
-	Short: "Scanner un site web complet",
+	Short: "Scan a website for broken links",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		baseURL := args[0]

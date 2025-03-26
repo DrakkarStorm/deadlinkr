@@ -8,6 +8,8 @@ import (
 	"github.com/DrakkarStorm/deadlinkr/model"
 )
 
+// ResolveURL resolves a relative URL to an absolute URL.
+// example: ResolveURL("https://example.com", "/about") -> "https://example.com/about"
 func ResolveURL(pageURL, href string) (*url.URL, error) {
 	hrefURL, err := url.Parse(href)
 	if err != nil {
@@ -25,6 +27,8 @@ func ResolveURL(pageURL, href string) (*url.URL, error) {
 	return resolvedURL, nil
 }
 
+// ShouldSkipURL checks if a URL should be skipped.
+// example: ShouldSkipURL("https://example.com", "mailto:example@example.com") -> true
 func ShouldSkipURL(baseURL, linkURL *url.URL) bool {
 	// Skip mailto, tel, javascript, etc.
 	if linkURL.Scheme != "http" && linkURL.Scheme != "https" {
@@ -34,6 +38,9 @@ func ShouldSkipURL(baseURL, linkURL *url.URL) bool {
 	return false
 }
 
+// CheckLink checks if a link is broken.
+// example: CheckLink("https://example.com") -> 200, ""
+// example: CheckLink("https://example.com/404") -> 404, ""
 func CheckLink(linkURL string) (int, string) {
 	client := &http.Client{
 		Timeout: time.Duration(model.Timeout) * time.Second,
@@ -59,6 +66,7 @@ func CheckLink(linkURL string) (int, string) {
 	return resp.StatusCode, ""
 }
 
+// CountBrokenLinks counts the number of broken links.
 func CountBrokenLinks() int {
 	count := 0
 	for _, result := range model.Results {
