@@ -284,7 +284,7 @@ func TestFetchAndParseDocument(t *testing.T) {
 }
 
 func TestExtractLinks(t *testing.T) {
-	// Sauvegarder les valeurs originales des variables globales pour les restaurer après
+	// Save original values of IgnoreExternal and OnlyExternal
 	originalIgnoreExternal := model.IgnoreExternal
 	originalOnlyExternal := model.OnlyExternal
 	defer func() {
@@ -292,7 +292,7 @@ func TestExtractLinks(t *testing.T) {
 		model.OnlyExternal = originalOnlyExternal
 	}()
 
-	// Configurer un serveur de test pour les URLs internes et externes
+	// Configure a server to return a simple HTML page
 	internalServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -371,21 +371,20 @@ func TestExtractLinks(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Configurer les variables globales pour ce test
+			// Configure variables globals for this test
 			model.IgnoreExternal = tc.ignoreExternal
 			model.OnlyExternal = tc.onlyExternal
 
-			// Créer le document à partir du HTML
+			// Create the document from the HTML
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(tc.html))
 			assert.NoError(t, err)
 
-			// Appeler la fonction à tester
 			links := extractLinks(baseURL, internalServer.URL, doc)
 
-			// Vérifier le nombre de liens extraits
+			// Verify the number of links extracted
 			assert.Equal(t, tc.expectedCount, len(links))
 
-			// Vérifier que les URLs attendues sont présentes
+			// Verify the URLs of the extracted links
 			foundURLs := make([]string, 0)
 			for _, link := range links {
 				foundURLs = append(foundURLs, link.TargetURL)
@@ -399,7 +398,6 @@ func TestExtractLinks(t *testing.T) {
 }
 
 func TestResolveAndFilterURL(t *testing.T) {
-	// Préparer une URL de base pour les tests
 	baseURL, _ := url.Parse("http://127.0.0.1:8085")
 
 	tests := []struct {
@@ -436,7 +434,7 @@ func TestResolveAndFilterURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := resolveAndFilterURL(tc.baseURL, tc.pageURL, tc.href)
 
-			// Vérifier si le résultat est nil quand on l'attend
+			// Verify if the result is nil when we expect it to be
 			if tc.expected == nil {
 				if result != nil {
 					t.Errorf("Expected nil, got %v", result)
@@ -444,13 +442,13 @@ func TestResolveAndFilterURL(t *testing.T) {
 				return
 			}
 
-			// Vérifier si le résultat est nil quand on ne l'attend pas
+			// Verify if the result is not nil when we don't expect it to be
 			if result == nil {
 				t.Errorf("Expected %v, got nil", tc.expected)
 				return
 			}
 
-			// Comparer les parties importantes de l'URL
+			// Compare the important parts of the URL
 			if result.Scheme != tc.expected.Scheme {
 				t.Errorf("Expected scheme %s, got %s", tc.expected.Scheme, result.Scheme)
 			}

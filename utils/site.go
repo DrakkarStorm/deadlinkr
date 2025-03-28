@@ -10,9 +10,11 @@ import (
 
 	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/PuerkitoBio/goquery"
-	// Import the main package
 )
 
+// Crawl crawls the given URL and its links up to the specified depth.
+// example: Crawl("https://example.com", "https://example.com", 0)
+// example: Crawl("https://example.com", "https://example.com/page", 1)
 func Crawl(baseURL, currentURL string, currentDepth int) {
 	// Stop if max depth reached
 	if currentDepth > model.Depth {
@@ -51,6 +53,7 @@ func Crawl(baseURL, currentURL string, currentDepth int) {
 	}(currentURL, currentDepth)
 }
 
+// CheckLinks checks all links on a page and returns a slice of LinkResult structs.
 func CheckLinks(baseURL, pageURL string) []model.LinkResult {
 	pageLinks := []model.LinkResult{}
 

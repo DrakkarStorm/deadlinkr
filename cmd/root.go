@@ -11,8 +11,8 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "deadlinkr",
-	Short: "A brief description of your application",
-	Long:  ``,
+	Short: "Deadlinkr is a tool to check for broken links in a website",
+	Long:  `Deadlinkr is a tool to check for broken links in a website. It can be used to check a single page or a whole website. It supports concurrent requests and can export the results in various formats.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -10,6 +10,8 @@ import (
 	"github.com/DrakkarStorm/deadlinkr/model"
 )
 
+// DisplayResults displays the results of the link check.
+// example: DisplayResults() -> "Broken links: 2"
 func DisplayResults() {
 	brokenLinks := []model.LinkResult{}
 
@@ -36,6 +38,8 @@ func DisplayResults() {
 	}
 }
 
+// ExportResults exports the results of the link check to a file.
+// example: ExportResults("csv") -> "deadlinkr-report.csv"
 func ExportResults(format string) {
 	switch strings.ToLower(format) {
 	case "csv":
@@ -49,6 +53,7 @@ func ExportResults(format string) {
 	}
 }
 
+// exportToCSV exports the results to a CSV file.
 func exportToCSV() {
 	file, err := os.Create("deadlinkr-report.csv")
 	if err != nil {
@@ -89,6 +94,7 @@ func exportToCSV() {
 	fmt.Println("Report exported to deadlinkr-report.csv")
 }
 
+// exportToJSON exports the results to a JSON file.
 func exportToJSON() {
 	file, err := os.Create("deadlinkr-report.json")
 	if err != nil {
@@ -107,6 +113,7 @@ func exportToJSON() {
 	fmt.Println("Report exported to deadlinkr-report.json")
 }
 
+// exportToHTML exports the results to an HTML file.
 func exportToHTML() {
 	file, err := os.Create("deadlinkr-report.html")
 	if err != nil {

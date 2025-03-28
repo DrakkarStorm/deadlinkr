@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutoriel - Documentation GoLink</title>
+    <title>GoLink Documentation - Tutorial</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,33 +71,33 @@
 <body>
     <header>
         <div class="container">
-            <h1>Documentation GoLink - Tutoriel</h1>
+            <h1>GoLink Documentation - Tutorial</h1>
         </div>
     </header>
 
     <nav>
         <div class="container">
             <ul>
-                <li><a href="index.html">Accueil</a></li>
+                <li><a href="index.html">Welcome</a></li>
                 <li><a href="installation.html">Installation</a></li>
-                <li><a href="tutoriel.html">Tutoriel</a></li>
+                <li><a href="tutoriel.html">Tutorial</a></li>
                 <li><a href="api.html">API</a></li>
-                <li><a href="exemples.html">Exemples</a></li>
+                <li><a href="exemples.html">Examples</a></li>
                 <li><a href="faq.html">FAQ</a></li>
-                <li><a href="ressources.html">Ressources</a></li>
-                <li><a href="contributeurs.html">Contributeurs</a></li>
-                <li><a href="configuration-avancee.html">Configuration avancée</a></li>
+                <li><a href="ressources.html">Resources</a></li>
+                <li><a href="contributeurs.html">Contributors</a></li>
+                <li><a href="page-inexistante.html">Roadmap</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
         </div>
     </nav>
 
     <div class="container content">
-        <h2>Tutoriel: Vérifier les liens morts avec GoLink</h2>
-        <p>Ce tutoriel vous guidera étape par étape dans l'utilisation de GoLink pour vérifier les liens dans votre documentation.</p>
+        <h2>Tutorial: Checking broken links with GoLink</h2>
+        <p>This tutorial will guide you step-by-step through using GoLink to check links in your documentation.</p>
 
-        <h3>Étape 1: Préparer votre projet</h3>
-        <p>Créez un fichier de configuration <code>golink.yml</code> à la racine de votre projet :</p>
+        <h3>Step 1: Prepare your project</h3>
+        <p>Create a configuration file <code>golink.yml</code> at the root of your project:</p>
         <div class="code-block">
             <pre>
 version: 1
@@ -110,42 +110,42 @@ timeout: 10
 </pre>
         </div>
 
-        <p>Pour plus d'options de configuration, consultez notre <a href="config-samples/avancee.yml">exemple de configuration avancée</a> (lien interne invalide).</p>
+        <p>For more configuration options, check out our <a href="config-samples/avancee.yml">advanced configuration example</a> (internal invalid link).</p>
 
-        <h3>Étape 2: Lancer l'analyse</h3>
-        <p>Exécutez la commande suivante pour analyser votre documentation :</p>
+        <h3>Step 2: Run GoLink</h3>
+        <p>Execute the following command to analyze your documentation:</p>
         <div class="code-block">
             <pre>golink check --dir ./docs</pre>
         </div>
 
-        <p>Vous pouvez également vérifier un site web distant :</p>
+        <p>You can also check a remote website:</p>
         <div class="code-block">
-            <pre>golink check --url https://votresite.com/docs</pre>
+            <pre>golink check --url https://yoursite.com/docs</pre>
         </div>
 
         <div class="image-placeholder">
-            <img src="/api/placeholder/400/320" alt="Exemple d'exécution de GoLink" />
+            <img src="/api/placeholder/400/320" alt="Example of GoLink execution" />
         </div>
 
-        <h3>Étape 3: Analyser les résultats</h3>
-        <p>GoLink générera un rapport détaillé. Pour comprendre ce rapport, consultez notre <a href="https://docs.golink-fake-domain.com/format-rapport">documentation sur le format de rapport</a> (lien externe invalide).</p>
+        <h3>Step 3: Analyze the report</h3>
+        <p>GoLink will generate a detailed report. To understand this report, consult our  <a href="https://docs.golink-fake-domain.com/format-rapport">documentation on report format</a> (external invalid link).</p>
 
-        <h3>Étape 4: Intégration avec CI/CD</h3>
-        <p>Intégrez GoLink à votre pipeline CI/CD en suivant notre <a href="integration-ci.html">guide d'intégration CI/CD</a>.</p>
+        <h3>Step 4: Integrate with CI/CD</h3>
+        <p>Integrate GoLink into your CI/CD pipeline by following our <a href="integration-ci.html">CI/CD integration guide</a>.</p>
 
-        <h3>Ressources complémentaires</h3>
+        <h3>More Resources</h3>
         <ul>
-            <li><a href="https://www.w3.org/Provider/Style/URI.html">Cool URIs don't change</a> (lien externe valide)</li>
-            <li><a href="https://en.wikipedia.org/wiki/Link_rot">Article Wikipedia sur le "link rot"</a> (lien externe valide)</li>
-            <li><a href="page-deplacee.html">Options avancées</a> (lien interne invalide)</li>
+            <li><a href="https://www.w3.org/Provider/Style/URI.html">Cool URIs don't change</a> (external valid link)</li>
+            <li><a href="https://en.wikipedia.org/wiki/Link_rot">Link rot on Wikipedia</a> (external valid link)</li>
+            <li><a href="page-deplacee.html">Advanced usage</a> (internal invalid link)</li>
         </ul>
 
-        <p>N'hésitez pas à consulter nos <a href="exemples.html">exemples pratiques</a> pour des cas d'utilisation plus spécifiques.</p>
+        <p>Don't forget to check our <a href="exemples.html">practical examples</a> for more specific use cases.</p>
     </div>
 
     <footer>
         <div class="container">
-            <p>Documentation GoLink © 2025 | <a href="mentions-legales.html">Mentions légales</a> | <a href="https://github.com/">GitHub</a></p>
+            <p>2023 GoLink. All rights reserved. | <a href="mentions-legales.html">Legal notices</a> | <a href="https://github.com/">GitHub</a></p>
         </div>
     </footer>
 </body>

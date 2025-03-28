@@ -1,39 +1,40 @@
-# deadlinkr
+# Deadlinkr
 
-Cet outil permet de scanner un site web pour identifier les liens cassés (dead links), ce qui est crucial pour maintenir la qualité d'un site web. Les liens morts nuisent à l'expérience utilisateur et peuvent affecter négativement le référencement.
+This tool allows you to scan a website for broken links (dead links), which is crucial for maintaining the quality of a website. Broken links negatively impact user experience and can affect search engine rankings.
 
-## Fonctionnalités principales
+## Features
 
-1. Crawling de site web : Parcourir récursivement toutes les pages d'un domaine
-2. Vérification des liens : Tester chaque lien pour voir s'il retourne une erreur (404, 500, etc.)
-3. Filtrage par type : Vérifier les liens internes, externes, ou les deux
-4. Limitation de profondeur : Contrôler la profondeur du crawling
-5. Rapport détaillé : Générer un rapport des problèmes trouvés
+1. Website crawling: Recursively crawl all pages of a domain
+2. Link verification: Test each link to see if it returns an error (404, 500, etc.)
+3. Filtering by type: Check internal, external, or both links
+4. Depth limitation: Control the depth of the crawling
+5. Detailed report: Generate a report of the issues found
 
 ## Usage
-### Structure de commandes possible avec Cobra
+### Commands
+
 ```
-Copydeadlinkr scan [url] --format=csv/json/html - Scanner un site web complet
-deadlinkr check [url] --format=csv/json/html - Vérifier une seule page
+deadlinkr scan [url] --format=csv/json/html - Scan a complete website
+deadlinkr check [url] --format=csv/json/html - Check a single page
 ```
 
 ### Options et flags
 
 ```
---depth=N - Limiter la profondeur de crawling
---concurrency=N - Nombre de requêtes simultanées
---timeout=N - Délai d'attente pour chaque requête
---ignore-external - Ignorer les liens externes
---only-external - Vérifier uniquement les liens externes
---user-agent="string" - Définir un user-agent personnalisé
---include-pattern="regex" - Inclure seulement les URLs correspondant au pattern
---exclude-pattern="regex" - Exclure les URLs correspondant au pattern
+--depth=N - Limit the depth of crawling
+--concurrency=N - Number of simultaneous requests
+--timeout=N - Timeout for each request
+--ignore-external - Ignore external links
+--only-external - Check only external links
+--user-agent="string" - Set a custom user-agent
+--include-pattern="regex" - Include only URLs matching the pattern
+--exclude-pattern="regex" - Exclude URLs matching the pattern
 ```
 
-## Améliorations possibles pour des vidéos de suivi
+## Roadmap
 
-1. Ajouter un mode "fix" pour corriger automatiquement les liens internes cassés
-2. Intégrer une API pour suggérer des alternatives pour les liens cassés
-3. Ajouter un serveur web pour visualiser les rapports de façon interactive
-4. Implémenter un mode "watch" pour surveiller en continu un site
-5. Ajouter un support pour l'authentification (sites protégés par mot de passe)
+1. Add a "fix" mode to automatically correct broken internal links
+2. Integrate an API to suggest alternatives for broken links
+3. Add a web server to visualize reports interactively
+4. Implement a "watch" mode to continuously monitor a site
+5. Add support for authentication (password-protected sites)
