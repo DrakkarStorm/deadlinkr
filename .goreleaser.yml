@@ -1,0 +1,53 @@
+version: 2
+project_name: deadlinkr
+
+builds:
+  - id: deadlinkr
+    main: .                   # points to your main.go in the repo root
+    binary: deadlinkr
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+
+
+archives:
+  - formats: ['tar.gz']
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: github                # use GitHub's compare API
+  sort: asc                  # oldest → newest  [oai_citation:0‡GoReleaser](https://goreleaser.com/customization/changelog/?utm_source=chatgpt.com)
+  filters:
+    exclude:
+      - '^docs'
+      - '^test'
+  groups:
+    - title: "✨ Features"
+      regexp: '^feat'
+      order: 1
+    - title: "🐛 Bug Fixes"
+      regexp: '^fix'
+      order: 2
+    - title: "🛠 Maintenance"
+      regexp: '^(chore|refactor)'
+      order: 3
+    - title: "📦 Dependencies"
+      regexp: '^deps?'
+      order: 4
+
+release:
+  github:
+    owner: DrakkarStorm
+    name: deadlinkr
+  draft: true
+  replace_existing_draft: true

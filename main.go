@@ -1,9 +1,15 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/DrakkarStorm/deadlinkr/cmd"
 )
 
+// version is replaced by GoReleaser via ldflags at build time
+var version = "dev"
+
 func main() {
+	fmt.Printf("deadlinkr %s\n", version)
 	cmd.Execute()
 }

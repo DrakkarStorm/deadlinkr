@@ -1,0 +1,29 @@
+name: 🐹 Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'    # only run when you push semver tags
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out your code
+      - uses: actions/checkout@v3
+
+      # 2. Set up Go
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      # 3. Install GoReleaser
+      - name: Install GoReleaser
+        run: |
+          curl -sfL https://goreleaser.com/static/run | bash -s -- check
+
+      # 4. Run GoReleaser
+      - name: Run GoReleaser
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goreleaser release --rm-dist
