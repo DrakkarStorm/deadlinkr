@@ -49,5 +49,5 @@ release:
   github:
     owner: DrakkarStorm
     name: deadlinkr
-  draft: true
+  draft: false
   replace_existing_draft: true
