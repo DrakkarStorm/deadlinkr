@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.0...v0.2.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* gorelease version 2 ([f2c9398](https://github.com/DrakkarStorm/deadlinkr/commit/f2c93989f10ed1241e690becbea0d5e185a774c4))
+
 # [0.2.0](https://github.com/DrakkarStorm/deadlinkr/compare/v0.1.1...v0.2.0) (2025-05-09)
 
 
