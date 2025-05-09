@@ -20,6 +20,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install dependencies
+        run: npm clean-install
+
       # 3. Execute Semantic Release
       - name: Run Semantic Release
         env:
