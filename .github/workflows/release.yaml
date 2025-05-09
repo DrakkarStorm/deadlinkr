@@ -2,8 +2,8 @@ name: 🐹 Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'    # only run when you push semver tags
+    branches:
+      - master
 
 jobs:
   release:
@@ -11,19 +11,37 @@ jobs:
     steps:
       # 1. Check out your code
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. Set up Go
+      # 2. Configuration Node.js pour Semantic Release
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # 3. Execute Semantic Release
+      - name: Run Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      # 4. (Optionnel) Affiche les notes, vérifiez que /tmp/release-notes.md existe
+      - name: Debug release notes
+        run: cat /tmp/release-notes.md
+
+      # 5. Set up Go
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
 
-      # 3. Run GoReleaser
+      # 6. Run GoReleaser
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           # 'latest', 'nightly', or a semver
           version: latest
-          args: release --clean
+          args: release --release-notes /tmp/release-notes.md --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
