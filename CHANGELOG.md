@@ -1,3 +1,10 @@
+## [0.2.4](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.3...v0.2.4) (2025-05-10)
+
+
+### Bug Fixes
+
+* no display of chore commit in changelog github ([deff251](https://github.com/DrakkarStorm/deadlinkr/commit/deff2512f1b005b635f6f1ca3192d8576553fe98))
+
 ## [0.2.3](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.2...v0.2.3) (2025-05-10)
 
 
