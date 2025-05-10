@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.1...v0.2.2) (2025-05-10)
+
+
+### Bug Fixes
+
+* error when running goreleaser during semantic step ([50c197a](https://github.com/DrakkarStorm/deadlinkr/commit/50c197abe2b7fa57bb06f3e9228c9c3335cfdad1))
+
 ## [0.2.1](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.0...v0.2.1) (2025-05-09)
 
 
