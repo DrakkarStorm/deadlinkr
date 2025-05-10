@@ -31,6 +31,8 @@ changelog:
     exclude:
       - '^docs'
       - '^test'
+      - '^ci'
+      - '^chore'
   groups:
     - title: "✨ Features"
       regexp: '^feat'
@@ -39,7 +41,7 @@ changelog:
       regexp: '^fix'
       order: 2
     - title: "🛠 Maintenance"
-      regexp: '^(chore|refactor)'
+      regexp: '^refactor'
       order: 3
     - title: "📦 Dependencies"
       regexp: '^deps?'
