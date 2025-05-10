@@ -1,3 +1,10 @@
+## [0.2.3](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.2...v0.2.3) (2025-05-10)
+
+
+### Bug Fixes
+
+* use release changelog github with goreleaser instead of semantic release ([d9e72c5](https://github.com/DrakkarStorm/deadlinkr/commit/d9e72c50d540df0f73ecf02ea3e7dfa337bc1e74))
+
 ## [0.2.2](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.1...v0.2.2) (2025-05-10)
 
 
