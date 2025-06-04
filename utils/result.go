@@ -162,6 +162,12 @@ func exportToHTML() {
 			rowClass = "warning"
 		}
 
+		if rowClass == "good" {
+			if model.DisplayOnlyError {
+				continue
+			}
+		}
+
 		linkType := "Internal"
 		if result.IsExternal {
 			linkType = "External"

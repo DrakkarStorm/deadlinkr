@@ -26,6 +26,9 @@ var IncludePattern string
 // ExcludePattern is the regex pattern for excluding URLs
 var ExcludePattern string
 
+// displayOnlyError indicates whether to display only error
+var DisplayOnlyError bool
+
 // Format is the export format for results
 var Format string
 

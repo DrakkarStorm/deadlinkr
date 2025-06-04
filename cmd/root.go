@@ -34,4 +34,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&model.UserAgent, "user-agent", "DeadLinkr/1.0", "Custom user agent")
 	rootCmd.PersistentFlags().StringVar(&model.IncludePattern, "include-pattern", "", "Only include URLs matching this regex")
 	rootCmd.PersistentFlags().StringVar(&model.ExcludePattern, "exclude-pattern", "", "Exclude URLs matching this regex")
+	rootCmd.PersistentFlags().BoolVar(&model.DisplayOnlyError, "display-only-error", false, "Display only error")
 }
