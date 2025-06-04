@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/DrakkarStorm/deadlinkr/logger"
 	"github.com/DrakkarStorm/deadlinkr/model"
 )
 
@@ -57,7 +58,7 @@ func ExportResults(format string) {
 func exportToCSV() {
 	file, err := os.Create("deadlinkr-report.csv")
 	if err != nil {
-		fmt.Printf("Error creating CSV file: %s\n", err)
+		logger.Errorf("Error creating CSV file: %s\n", err)
 		return
 	}
 	defer file.Close()
@@ -67,12 +68,16 @@ func exportToCSV() {
 
 	// Write header
 	if err := writer.Write([]string{"Source URL", "Target URL", "Status", "Error", "Is External"}); err != nil {
-		fmt.Printf("Error writing CSV header: %s\n", err)
+		logger.Errorf("Error writing CSV header: %s\n", err)
 		return
 	}
 
 	// Write data
 	for _, result := range model.Results {
+		if (model.OnlyInternal && result.IsExternal || model.DisplayOnlyExternal && !result.IsExternal) {
+			continue
+		}
+
 		isExternalStr := "false"
 		if result.IsExternal {
 			isExternalStr = "true"
@@ -85,20 +90,20 @@ func exportToCSV() {
 			result.Error,
 			isExternalStr,
 		}); err != nil {
-			fmt.Printf("Error writing CSV row: %s\n", err)
+			logger.Errorf("Error writing CSV row: %s\n", err)
 			return
 		}
 
 	}
 
-	fmt.Println("Report exported to deadlinkr-report.csv")
+	logger.Debugf("Report exported to deadlinkr-report.csv")
 }
 
 // exportToJSON exports the results to a JSON file.
 func exportToJSON() {
 	file, err := os.Create("deadlinkr-report.json")
 	if err != nil {
-		fmt.Printf("Error creating JSON file: %s\n", err)
+		logger.Errorf("Error creating JSON file: %s\n", err)
 		return
 	}
 	defer file.Close()
@@ -106,18 +111,18 @@ func exportToJSON() {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(model.Results); err != nil {
-		fmt.Printf("Error encoding JSON: %s\n", err)
+		logger.Errorf("Error encoding JSON: %s\n", err)
 		return
 	}
 
-	fmt.Println("Report exported to deadlinkr-report.json")
+	logger.Debugf("Report exported to deadlinkr-report.json")
 }
 
 // exportToHTML exports the results to an HTML file.
 func exportToHTML() {
 	file, err := os.Create("deadlinkr-report.html")
 	if err != nil {
-		fmt.Printf("Error creating HTML file: %s\n", err)
+		logger.Errorf("Error creating HTML file: %s\n", err)
 		return
 	}
 	defer file.Close()
@@ -155,11 +160,21 @@ func exportToHTML() {
 `
 
 	for _, result := range model.Results {
+		if (model.OnlyInternal && result.IsExternal || model.DisplayOnlyExternal && !result.IsExternal) {
+			continue
+		}
+
 		rowClass := "good"
 		if result.Status >= 400 || result.Error != "" {
 			rowClass = "error"
 		} else if result.Status >= 300 {
 			rowClass = "warning"
+		}
+
+		if rowClass == "good" {
+			if model.DisplayOnlyError {
+				continue
+			}
 		}
 
 		linkType := "Internal"
@@ -188,8 +203,8 @@ func exportToHTML() {
 
 	_, err = file.WriteString(html)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
+		logger.Errorf("Error writing to file: %s", err.Error())
 		return
 	}
-	fmt.Println("Report exported to deadlinkr-report.html")
+	logger.Debugf("Report exported to deadlinkr-report.html")
 }

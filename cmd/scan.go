@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/DrakkarStorm/deadlinkr/logger"
 	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/DrakkarStorm/deadlinkr/utils"
 	"github.com/spf13/cobra"
@@ -19,7 +18,7 @@ var scanCmd = &cobra.Command{
 		// Reset global state
 		model.Results = []model.LinkResult{}
 
-		fmt.Printf("Starting scan of %s with depth %d\n", baseURL, model.Depth)
+		logger.Debugf("Starting scan of %s with depth %d", baseURL, model.Depth)
 
 		// Start crawling
 		utils.Crawl(baseURL, baseURL, 0)
@@ -27,9 +26,9 @@ var scanCmd = &cobra.Command{
 		// Wait for all crawling to complete
 		model.Wg.Wait()
 
-		fmt.Printf("Scan complete. Found %d links, %d broken.\n", len(model.Results), utils.CountBrokenLinks())
+		logger.Infof("Scan complete. Found %d links, %d broken.\n", len(model.Results), utils.CountBrokenLinks())
 
-		fmt.Println("Exporting results to", model.Format)
+		logger.Debugf("Exporting results to %s", model.Format)
 		if model.Format != "" {
 			utils.ExportResults(model.Format)
 		}
@@ -41,4 +40,6 @@ func init() {
 
 	// Define a flag for the export format
 	scanCmd.Flags().StringVar(&model.Format, "format", "html", "Export format (csv, json, html)")
+	scanCmd.PersistentFlags().IntVar(&model.Depth, "depth", 1, "Maximum crawl depth")
+
 }

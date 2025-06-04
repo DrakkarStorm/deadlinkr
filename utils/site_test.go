@@ -85,7 +85,7 @@ func TestCheckLinks(t *testing.T) {
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://golang.org/dl/",
-					Status:     405,
+					Status:     200,
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
@@ -96,7 +96,7 @@ func TestCheckLinks(t *testing.T) {
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://non-existent-domain-123456.xyz/",
 					Status:     0,
-					Error:      "Head \"https://non-existent-domain-123456.xyz/\": dial tcp: lookup non-existent-domain-123456.xyz"+githubActionString+": no such host",
+					Error:      "Get \"https://non-existent-domain-123456.xyz/\": dial tcp: lookup non-existent-domain-123456.xyz"+githubActionString+": no such host",
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
@@ -107,7 +107,7 @@ func TestCheckLinks(t *testing.T) {
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://another-wrong-domain.org/docs",
 					Status:     0,
-					Error:      "Head \"https://another-wrong-domain.org/docs\": dial tcp: lookup another-wrong-domain.org"+githubActionString+": no such host",
+					Error:      "Get \"https://another-wrong-domain.org/docs\": dial tcp: lookup another-wrong-domain.org"+githubActionString+": no such host",
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
@@ -285,11 +285,9 @@ func TestFetchAndParseDocument(t *testing.T) {
 
 func TestExtractLinks(t *testing.T) {
 	// Save original values of IgnoreExternal and OnlyExternal
-	originalIgnoreExternal := model.IgnoreExternal
-	originalOnlyExternal := model.OnlyExternal
+	originalOnlyInternal := model.OnlyInternal
 	defer func() {
-		model.IgnoreExternal = originalIgnoreExternal
-		model.OnlyExternal = originalOnlyExternal
+		model.OnlyInternal = originalOnlyInternal
 	}()
 
 	// Configure a server to return a simple HTML page
@@ -303,7 +301,7 @@ func TestExtractLinks(t *testing.T) {
 	testCases := []struct {
 		name           string
 		html           string
-		ignoreExternal bool
+		onlyInternal bool
 		onlyExternal   bool
 		expectedCount  int
 		expectedURLs   []string
@@ -315,7 +313,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="/page2">Page 2</a>
 				<a href="#section">Section</a>
 			</body></html>`,
-			ignoreExternal: false,
+			onlyInternal: false,
 			onlyExternal:   false,
 			expectedCount:  2,
 			expectedURLs:   []string{internalServer.URL + "/page1", internalServer.URL + "/page2"},
@@ -326,7 +324,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="/internal">Internal</a>
 				<a href="http://external.server.com/external">External</a>
 			</body></html>`,
-			ignoreExternal: false,
+			onlyInternal: false,
 			onlyExternal:   false,
 			expectedCount:  2,
 			expectedURLs:   []string{internalServer.URL + "/internal", "http://external.server.com/external"},
@@ -338,22 +336,10 @@ func TestExtractLinks(t *testing.T) {
 				<a href="/internal2">Internal 2</a>
 				<a href="http://external.server.com/external">External</a>
 			</body></html>`,
-			ignoreExternal: true,
+			onlyInternal: true,
 			onlyExternal:   false,
 			expectedCount:  2,
 			expectedURLs:   []string{internalServer.URL + "/internal1", internalServer.URL + "/internal2"},
-		},
-		{
-			name: "Only external links",
-			html: `<html><body>
-				<a href="/internal">Internal</a>
-				<a href="http://external.server.com/external1">External 1</a>
-				<a href="http://external.server.com/external2">External 2</a>
-			</body></html>`,
-			ignoreExternal: false,
-			onlyExternal:   true,
-			expectedCount:  2,
-			expectedURLs:   []string{"http://external.server.com/external1", "http://external.server.com/external2"},
 		},
 		{
 			name: "Empty hrefs and fragment links should be ignored",
@@ -362,7 +348,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="#">Fragment</a>
 				<a href="/valid">Valid</a>
 			</body></html>`,
-			ignoreExternal: false,
+			onlyInternal: false,
 			onlyExternal:   false,
 			expectedCount:  1,
 			expectedURLs:   []string{internalServer.URL + "/valid"},
@@ -372,8 +358,7 @@ func TestExtractLinks(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Configure variables globals for this test
-			model.IgnoreExternal = tc.ignoreExternal
-			model.OnlyExternal = tc.onlyExternal
+			model.OnlyInternal = tc.onlyInternal
 
 			// Create the document from the HTML
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(tc.html))

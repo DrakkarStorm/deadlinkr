@@ -10,6 +10,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/DrakkarStorm/deadlinkr/logger"
 	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,6 +20,7 @@ const SOURCE_URL = "http://127.0.0.1:8085"
 
 // Helper function to set up test environment
 func setupTest() func() {
+	logger.InitLogger(logger.DebugLevel)
 	// Save original model.Results
 	originalResults := model.Results
 	// originalVisitedURLs := model.VisitedURLs
@@ -43,11 +45,13 @@ func setupTest() func() {
 		model.Timeout = originalTimeout
 		model.UserAgent = originalUserAgent
 		// model.Wg = originalWg
+		logger.CloseLogger()
 
 		// Clean up test files
 		os.Remove("deadlinkr-report.csv")
 		os.Remove("deadlinkr-report.json")
 		os.Remove("deadlinkr-report.html")
+		os.Remove("deadlinkr.log")
 	}
 }
 

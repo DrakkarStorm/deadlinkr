@@ -1,13 +1,11 @@
 package utils
 
 import (
-	"fmt"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
-	"time"
 
+	"github.com/DrakkarStorm/deadlinkr/logger"
 	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/PuerkitoBio/goquery"
 )
@@ -24,10 +22,11 @@ func Crawl(baseURL, currentURL string, currentDepth int) {
 	// Check if URL already visited
 	_, alreadyVisited := model.VisitedURLs.LoadOrStore(currentURL, true)
 	if alreadyVisited {
+		logger.Debugf("→ skip (already visited) : %s", currentURL)
 		return
 	}
 
-	fmt.Printf("Crawling: %s (depth %d)\n", currentURL, currentDepth)
+	logger.Debugf("Crawling: %s (depth %d)", currentURL, currentDepth)
 
 	// Increment wait group
 	model.Wg.Add(1)
@@ -38,6 +37,8 @@ func Crawl(baseURL, currentURL string, currentDepth int) {
 
 		// Check the links on the current page
 		links := CheckLinks(baseURL, url)
+
+		logger.Debugf("Found %d links on %s", len(links), url)
 
 		// If the current depth is less than the maximum depth, continue crawling
 		if d < model.Depth {
@@ -68,39 +69,29 @@ func CheckLinks(baseURL, pageURL string) []model.LinkResult {
 	}
 
 	pageLinks = extractLinks(baseUrlParsed, pageURL, doc)
-	fmt.Printf("Found %d links on %s\n", len(pageLinks), pageURL)
+	logger.Debugf("Found %d links on %s", len(pageLinks), pageURL)
 	return pageLinks
 }
 
 func parseBaseURL(baseURL string) *url.URL {
 	baseUrlParsed, err := url.Parse(baseURL)
 	if err != nil {
-		fmt.Printf("Error parsing base URL %s: %s\n", baseURL, err)
+		logger.Errorf("Error parsing base URL %s: %s", baseURL, err)
 		return nil
 	}
 	if baseUrlParsed.Host == "" {
-		fmt.Printf("Error parsing base URL %s: no host found\n", baseURL)
+		logger.Errorf("Error parsing base URL %s: no host found", baseURL)
 		return nil
 	}
 	return baseUrlParsed
 }
 
 func fetchAndParseDocument(pageURL string) *goquery.Document {
-	client := &http.Client{
-		Timeout: time.Duration(model.Timeout) * time.Second,
-	}
+	retry := 3
+	resp, err := FetchWithRetry(pageURL, retry)
 
-	req, err := http.NewRequest(http.MethodGet, pageURL, nil)
 	if err != nil {
-		fmt.Printf("Error creating request for %s: %s\n", pageURL, err)
-		return nil
-	}
-
-	req.Header.Set("User-Agent", model.UserAgent)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Printf("Error fetching %s: %s\n", pageURL, err)
+		logger.Errorf("Failed to fetch %s after %d retries: %s", pageURL, retry, err)
 		return nil
 	}
 	defer resp.Body.Close()
@@ -111,7 +102,7 @@ func fetchAndParseDocument(pageURL string) *goquery.Document {
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		fmt.Printf("Error parsing HTML from %s: %s\n", pageURL, err)
+		logger.Errorf("Error parsing HTML from %s: %s", pageURL, err)
 		return nil
 	}
 
@@ -121,24 +112,27 @@ func fetchAndParseDocument(pageURL string) *goquery.Document {
 func extractLinks(baseUrlParsed *url.URL, pageURL string, doc *goquery.Document) []model.LinkResult {
 	pageLinks := []model.LinkResult{}
 
-	doc.Find("a[href]").Each(func(i int, s *goquery.Selection) {
+	doc.Find("a[href]").Not(model.ExcludeHtmlTags).Each(func(i int, s *goquery.Selection) {
 		href, exists := s.Attr("href")
 		if !exists || href == "" || strings.HasPrefix(href, "#") {
+			logger.Debugf("Skipping link due to missing href or #: %s", href)
 			return
 		}
 
 		linkURL := resolveAndFilterURL(baseUrlParsed, pageURL, href)
 		if linkURL == nil {
+			logger.Debugf("Skipping link due to invalid URL resolution: %s", href)
 			return
 		}
 
 		isExternal := baseUrlParsed.Hostname() != linkURL.Hostname()
 
-		if (model.IgnoreExternal && isExternal) || (model.OnlyExternal && !isExternal) {
+		if (model.OnlyInternal && isExternal) {
 			return
 		}
 
 		if shouldSkipURLBasedOnPattern(linkURL) {
+			logger.Debugf("Skipping link due to pattern match: %s", href)
 			return
 		}
 
