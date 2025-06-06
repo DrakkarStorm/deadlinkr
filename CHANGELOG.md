@@ -1,3 +1,15 @@
+# [0.3.0](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.4...v0.3.0) (2025-06-06)
+
+
+### Bug Fixes
+
+* update release to be launch manually ([1a9d269](https://github.com/DrakkarStorm/deadlinkr/commit/1a9d2694080df96a61adb5d31e62ffbe6ff6e949))
+
+
+### Features
+
+* add retry fetch add configure logger ([86d8c61](https://github.com/DrakkarStorm/deadlinkr/commit/86d8c617e12ca704a53b94ffcfb9350ebb2fa799))
+
 ## [0.2.4](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.3...v0.2.4) (2025-05-10)
 
 
