@@ -285,11 +285,9 @@ func TestFetchAndParseDocument(t *testing.T) {
 
 func TestExtractLinks(t *testing.T) {
 	// Save original values of IgnoreExternal and OnlyExternal
-	originalIgnoreExternal := model.IgnoreExternal
-	originalOnlyExternal := model.OnlyExternal
+	originalOnlyInternal := model.OnlyInternal
 	defer func() {
-		model.IgnoreExternal = originalIgnoreExternal
-		model.OnlyExternal = originalOnlyExternal
+		model.OnlyInternal = originalOnlyInternal
 	}()
 
 	// Configure a server to return a simple HTML page
@@ -303,7 +301,7 @@ func TestExtractLinks(t *testing.T) {
 	testCases := []struct {
 		name           string
 		html           string
-		ignoreExternal bool
+		onlyInternal bool
 		onlyExternal   bool
 		expectedCount  int
 		expectedURLs   []string
@@ -315,7 +313,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="/page2">Page 2</a>
 				<a href="#section">Section</a>
 			</body></html>`,
-			ignoreExternal: false,
+			onlyInternal: false,
 			onlyExternal:   false,
 			expectedCount:  2,
 			expectedURLs:   []string{internalServer.URL + "/page1", internalServer.URL + "/page2"},
@@ -326,7 +324,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="/internal">Internal</a>
 				<a href="http://external.server.com/external">External</a>
 			</body></html>`,
-			ignoreExternal: false,
+			onlyInternal: false,
 			onlyExternal:   false,
 			expectedCount:  2,
 			expectedURLs:   []string{internalServer.URL + "/internal", "http://external.server.com/external"},
@@ -338,7 +336,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="/internal2">Internal 2</a>
 				<a href="http://external.server.com/external">External</a>
 			</body></html>`,
-			ignoreExternal: true,
+			onlyInternal: true,
 			onlyExternal:   false,
 			expectedCount:  2,
 			expectedURLs:   []string{internalServer.URL + "/internal1", internalServer.URL + "/internal2"},
@@ -350,7 +348,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="http://external.server.com/external1">External 1</a>
 				<a href="http://external.server.com/external2">External 2</a>
 			</body></html>`,
-			ignoreExternal: false,
+			onlyInternal: false,
 			onlyExternal:   true,
 			expectedCount:  2,
 			expectedURLs:   []string{"http://external.server.com/external1", "http://external.server.com/external2"},
@@ -362,7 +360,7 @@ func TestExtractLinks(t *testing.T) {
 				<a href="#">Fragment</a>
 				<a href="/valid">Valid</a>
 			</body></html>`,
-			ignoreExternal: false,
+			onlyInternal: false,
 			onlyExternal:   false,
 			expectedCount:  1,
 			expectedURLs:   []string{internalServer.URL + "/valid"},
@@ -372,8 +370,7 @@ func TestExtractLinks(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Configure variables globals for this test
-			model.IgnoreExternal = tc.ignoreExternal
-			model.OnlyExternal = tc.onlyExternal
+			model.OnlyInternal = tc.onlyInternal
 
 			// Create the document from the HTML
 			doc, err := goquery.NewDocumentFromReader(strings.NewReader(tc.html))
