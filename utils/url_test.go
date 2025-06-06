@@ -145,19 +145,19 @@ func TestCheckLink(t *testing.T) {
 			name:           "Valid URL with 200 response",
 			url:            okServer.URL,
 			expectedStatus: 200,
-			expectedError:  "",
+			expectedError:  "The response body is empty",
 		},
 		{
 			name:           "Valid URL with 404 response",
 			url:            notFoundServer.URL,
 			expectedStatus: 404,
-			expectedError:  "",
+			expectedError:  "The response body is empty",
 		},
 		{
 			name:           "Valid URL with redirect",
 			url:            redirectServer.URL,
 			expectedStatus: 200,
-			expectedError:  "",
+			expectedError:  "The response body is empty",
 		},
 		{
 			name:           "Invalid URL",

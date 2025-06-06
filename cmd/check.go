@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/DrakkarStorm/deadlinkr/logger"
 	"github.com/DrakkarStorm/deadlinkr/model"
 	"github.com/DrakkarStorm/deadlinkr/utils"
 	"github.com/spf13/cobra"
@@ -19,12 +18,12 @@ var checkCmd = &cobra.Command{
 		// Initialize
 		model.Results = []model.LinkResult{}
 
-		fmt.Printf("Checking links on %s\n", pageURL)
+		logger.Debugf("Checking links on %s", pageURL)
 
 		// Check single page without recursion
 		utils.CheckLinks(pageURL, pageURL)
 
-		fmt.Printf("Check complete. Found %d links, %d broken.\n", len(model.Results), utils.CountBrokenLinks())
+		logger.Infof("Check complete. Found %d links, %d broken.", len(model.Results), utils.CountBrokenLinks())
 
 		if model.Format != "" {
 			utils.ExportResults(model.Format)
