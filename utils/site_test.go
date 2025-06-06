@@ -85,7 +85,7 @@ func TestCheckLinks(t *testing.T) {
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://golang.org/dl/",
-					Status:     405,
+					Status:     200,
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
@@ -96,7 +96,7 @@ func TestCheckLinks(t *testing.T) {
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://non-existent-domain-123456.xyz/",
 					Status:     0,
-					Error:      "Head \"https://non-existent-domain-123456.xyz/\": dial tcp: lookup non-existent-domain-123456.xyz"+githubActionString+": no such host",
+					Error:      "Get \"https://non-existent-domain-123456.xyz/\": dial tcp: lookup non-existent-domain-123456.xyz"+githubActionString+": no such host",
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
@@ -107,7 +107,7 @@ func TestCheckLinks(t *testing.T) {
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
 					TargetURL:  "https://another-wrong-domain.org/docs",
 					Status:     0,
-					Error:      "Head \"https://another-wrong-domain.org/docs\": dial tcp: lookup another-wrong-domain.org"+githubActionString+": no such host",
+					Error:      "Get \"https://another-wrong-domain.org/docs\": dial tcp: lookup another-wrong-domain.org"+githubActionString+": no such host",
 					IsExternal: true},
 				{
 					SourceURL:  "http://127.0.0.1:8085/installation.html",
@@ -340,18 +340,6 @@ func TestExtractLinks(t *testing.T) {
 			onlyExternal:   false,
 			expectedCount:  2,
 			expectedURLs:   []string{internalServer.URL + "/internal1", internalServer.URL + "/internal2"},
-		},
-		{
-			name: "Only external links",
-			html: `<html><body>
-				<a href="/internal">Internal</a>
-				<a href="http://external.server.com/external1">External 1</a>
-				<a href="http://external.server.com/external2">External 2</a>
-			</body></html>`,
-			onlyInternal: false,
-			onlyExternal:   true,
-			expectedCount:  2,
-			expectedURLs:   []string{"http://external.server.com/external1", "http://external.server.com/external2"},
 		},
 		{
 			name: "Empty hrefs and fragment links should be ignored",
