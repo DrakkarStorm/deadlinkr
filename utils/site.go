@@ -13,7 +13,7 @@ import (
 // Crawl crawls the given URL and its links up to the specified depth.
 // example: Crawl("https://example.com", "https://example.com", 0)
 // example: Crawl("https://example.com", "https://example.com/page", 1)
-func Crawl(baseURL, currentURL string, currentDepth int) {
+func Crawl(baseURL, currentURL string, currentDepth int, concurrency int) {
 	// Stop if max depth reached
 	if currentDepth > model.Depth {
 		return
@@ -47,7 +47,7 @@ func Crawl(baseURL, currentURL string, currentDepth int) {
 				// Only recursively crawl internal links
 				if !link.IsExternal {
 					// Start a new goroutine for each internal link to crawl it
-					go Crawl(baseURL, link.TargetURL, d+1)
+					go Crawl(baseURL, link.TargetURL, d+1, model.Concurrency)
 				}
 			}
 		}
@@ -112,7 +112,7 @@ func fetchAndParseDocument(pageURL string) *goquery.Document {
 func extractLinks(baseUrlParsed *url.URL, pageURL string, doc *goquery.Document) []model.LinkResult {
 	pageLinks := []model.LinkResult{}
 
-	doc.Find("a[href]").Not(model.ExcludeHtmlTags).Each(func(i int, s *goquery.Selection) {
+	doc.Find("body a[href]").Not(model.ExcludeHtmlTags).Each(func(i int, s *goquery.Selection) {
 		href, exists := s.Attr("href")
 		if !exists || href == "" || strings.HasPrefix(href, "#") {
 			logger.Debugf("Skipping link due to missing href or #: %s", href)

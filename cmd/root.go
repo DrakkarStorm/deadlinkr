@@ -26,7 +26,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().IntVar(&model.Concurrency, "concurrency", 20, "Number of concurrent requests")
 	rootCmd.PersistentFlags().IntVar(&model.Timeout, "timeout", 30, "Request timeout in seconds")
 
 	rootCmd.PersistentFlags().BoolVar(&model.OnlyInternal, "only-internal", false, "Check only internal links")

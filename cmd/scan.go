@@ -21,7 +21,7 @@ var scanCmd = &cobra.Command{
 		logger.Debugf("Starting scan of %s with depth %d", baseURL, model.Depth)
 
 		// Start crawling
-		utils.Crawl(baseURL, baseURL, 0)
+		utils.Crawl(baseURL, baseURL, 0, model.Concurrency)
 
 		// Wait for all crawling to complete
 		model.Wg.Wait()
@@ -38,6 +38,7 @@ var scanCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(scanCmd)
 
+	scanCmd.PersistentFlags().IntVar(&model.Concurrency, "concurrency", 20, "Number of concurrent requests")
 	// Define a flag for the export format
 	scanCmd.Flags().StringVar(&model.Format, "format", "html", "Export format (csv, json, html)")
 	scanCmd.PersistentFlags().IntVar(&model.Depth, "depth", 1, "Maximum crawl depth")
