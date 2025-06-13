@@ -77,14 +77,6 @@ func CheckLink(linkURL string) (int, string) {
 }
 
 func FetchWithRetry(url string, retry int) (*http.Response, error) {
-	client := &http.Client{
-		Timeout: time.Duration(model.Timeout) * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			// Return nil to follow redirects
-			return nil
-		},
-	}
-
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -95,7 +87,7 @@ func FetchWithRetry(url string, retry int) (*http.Response, error) {
 	var resp *http.Response
 	var errRequest error
 	for i := 1; i <= retry; i++ {
-		resp, errRequest = client.Do(req)
+		resp, errRequest = ClientHTTP.Do(req)
 		if errRequest == nil {
 			return resp, nil
 		}
