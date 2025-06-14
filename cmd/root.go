@@ -26,7 +26,11 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().IntVar(&model.Timeout, "timeout", 30, "Request timeout in seconds")
+	rootCmd.PersistentFlags().BoolVar(&model.Quiet, "quiet", false, "Disable output")
+
+	rootCmd.PersistentFlags().StringVar(&model.LogLevel, "log-level", "info", "Log level (debug, info, warn, error, fatal)")
+
+	rootCmd.PersistentFlags().IntVar(&model.Timeout, "timeout", 10, "Request timeout in seconds")
 
 	rootCmd.PersistentFlags().BoolVar(&model.OnlyInternal, "only-internal", false, "Check only internal links")
 
@@ -40,4 +44,6 @@ func init() {
 
 	rootCmd.PersistentFlags().BoolVar(&model.DisplayOnlyError, "display-only-error", true, "Display only error")
 	rootCmd.PersistentFlags().BoolVar(&model.DisplayOnlyExternal, "display-only-external", false, "Display only external")
+
+	rootCmd.PersistentFlags().StringVar(&model.Output, "output", "", "Output file (csv or json or html)")
 }

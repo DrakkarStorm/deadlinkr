@@ -8,6 +8,12 @@ import (
 // Depth is the maximum depth for crawling
 var Depth int
 
+// Quiet indicates whether to disable output
+var Quiet bool
+
+// LogLevel is the log level for the application
+var LogLevel string
+
 // Concurrency is the number of concurrent requests
 var Concurrency int
 
@@ -52,3 +58,6 @@ var Wg sync.WaitGroup
 
 // timeExecution is the start time of the execution of the program
 var TimeExecution time.Time
+
+// Output is the output file for the results
+var Output string

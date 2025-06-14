@@ -15,7 +15,7 @@ var version = "dev"
 func main() {
 	model.TimeExecution = time.Now()
 
-	logger.InitLogger(logger.DebugLevel)
+	logger.InitLogger(model.LogLevel)
 	defer logger.CloseLogger()
 
 	fmt.Printf("deadlinkr %s\n", version)

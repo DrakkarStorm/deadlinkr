@@ -34,32 +34,52 @@ var logger *log.Logger
 var logLevel LogLevel
 var logFile *os.File
 
-func InitLogger(level LogLevel) {
-	logLevel = level
-	var logFilePath string
+func InitLogger(level string) {
+	if !model.Quiet {
+		logLevel = StringToLogLevel(level)
 
-	switch runtime.GOOS {
-	case "linux", "darwin":
-		logFilePath = "/var/log/deadlinkr.log"
-	case "windows":
-		logFilePath = filepath.Join(os.Getenv("LOCALAPPDATA"), "deadlinkr", "deadlinkr.log")
-	default:
-		// For other operating systems, use a default directory
-		logFilePath = filepath.Join(os.TempDir(), "deadlinkr.log")
-	}
+		var logFilePath string
 
-	logFile, err := os.Create(logFilePath)
-	if err != nil {
-		// If we can't create the log file in the specified directory, fall back to the current directory.
-		logFilePath = "deadlinkr.log"
-		logFile, err = os.Create(logFilePath)
-		if err != nil {
-			log.Fatalf("Failed to create log file: %v", err)
+		switch runtime.GOOS {
+		case "linux", "darwin":
+			logFilePath = "/var/log/deadlinkr.log"
+		case "windows":
+			logFilePath = filepath.Join(os.Getenv("LOCALAPPDATA"), "deadlinkr", "deadlinkr.log")
+		default:
+			// For other operating systems, use a default directory
+			logFilePath = filepath.Join(os.TempDir(), "deadlinkr.log")
 		}
-	}
-	fmt.Println("Logging to:", logFilePath)
 
-	logger = log.New(logFile, "", log.LstdFlags)
+		logFile, err := os.Create(logFilePath)
+		if err != nil {
+			// If we can't create the log file in the specified directory, fall back to the current directory.
+			logFilePath = "deadlinkr.log"
+			logFile, err = os.Create(logFilePath)
+			if err != nil {
+				log.Fatalf("Failed to create log file: %v", err)
+			}
+		}
+		fmt.Println("Logging to:", logFilePath)
+
+		logger = log.New(logFile, "", log.LstdFlags)
+	}
+}
+
+func StringToLogLevel(level string) LogLevel {
+	switch level {
+	case "debug":
+		return DebugLevel
+	case "info":
+		return InfoLevel
+	case "warn":
+		return WarnLevel
+	case "error":
+		return ErrorLevel
+	case "fatal":
+		return FatalLevel
+	default:
+		return InfoLevel
+	}
 }
 
 func CloseLogger() {
@@ -69,8 +89,10 @@ func CloseLogger() {
 }
 
 func Log(level LogLevel, format string, a ...any) {
-	if level >= logLevel {
-		logger.Printf("%s - %s", logLevels[level], fmt.Sprintf(format, a...))
+	if !model.Quiet {
+		if level >= logLevel {
+			logger.Printf("%s - %s", logLevels[level], fmt.Sprintf(format, a...))
+		}
 	}
 }
 

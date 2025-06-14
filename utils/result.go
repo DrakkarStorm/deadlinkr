@@ -56,7 +56,12 @@ func ExportResults(format string) {
 
 // exportToCSV exports the results to a CSV file.
 func exportToCSV() {
-	file, err := os.Create("deadlinkr-report.csv")
+	filename := "deadlinkr-report.csv"
+	if model.Output != "" {
+		filename = model.Output
+	}
+
+	file, err := os.Create(filename)
 	if err != nil {
 		logger.Errorf("Error creating CSV file: %s\n", err)
 		return
@@ -101,7 +106,12 @@ func exportToCSV() {
 
 // exportToJSON exports the results to a JSON file.
 func exportToJSON() {
-	file, err := os.Create("deadlinkr-report.json")
+	filename := "deadlinkr-report.json"
+	if model.Output != "" {
+		filename = model.Output
+	}
+
+	file, err := os.Create(filename)
 	if err != nil {
 		logger.Errorf("Error creating JSON file: %s\n", err)
 		return
@@ -120,7 +130,12 @@ func exportToJSON() {
 
 // exportToHTML exports the results to an HTML file.
 func exportToHTML() {
-	file, err := os.Create("deadlinkr-report.html")
+	filename := "deadlinkr-report.html"
+	if model.Output != "" {
+		filename = model.Output
+	}
+
+	file, err := os.Create(filename)
 	if err != nil {
 		logger.Errorf("Error creating HTML file: %s\n", err)
 		return

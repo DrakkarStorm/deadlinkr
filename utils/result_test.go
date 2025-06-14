@@ -20,7 +20,7 @@ const SOURCE_URL = "http://127.0.0.1:8085"
 
 // Helper function to set up test environment
 func setupTest() func() {
-	logger.InitLogger(logger.DebugLevel)
+	logger.InitLogger("debug")
 	// Save original model.Results
 	originalResults := model.Results
 	// originalVisitedURLs := model.VisitedURLs
