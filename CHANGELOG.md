@@ -1,3 +1,12 @@
+# [0.4.0](https://github.com/DrakkarStorm/deadlinkr/compare/v0.3.0...v0.4.0) (2025-06-15)
+
+
+### Features
+
+*  add configuration for log file and output for cicd ([9d2b484](https://github.com/DrakkarStorm/deadlinkr/commit/9d2b484b20cfc94290bf8d4e91b488ad24cf9ae3))
+* optimize http client use by crawl ([e161e42](https://github.com/DrakkarStorm/deadlinkr/commit/e161e42826537188b36f9972871344dd6e83acef))
+* update readme ([8f58b3a](https://github.com/DrakkarStorm/deadlinkr/commit/8f58b3a95b6db452cc580b8a0026a99a2002c9a6))
+
 # [0.3.0](https://github.com/DrakkarStorm/deadlinkr/compare/v0.2.4...v0.3.0) (2025-06-06)
 
 
