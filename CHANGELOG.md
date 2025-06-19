@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/DrakkarStorm/deadlinkr/compare/v0.4.0...v0.4.1) (2025-06-19)
+
+
+### Bug Fixes
+
+* issue with scan finished before recurse ([95f8cb1](https://github.com/DrakkarStorm/deadlinkr/commit/95f8cb18d7e1ba0372c5b82c71fa1555a8bb63ff))
+
 # [0.4.0](https://github.com/DrakkarStorm/deadlinkr/compare/v0.3.0...v0.4.0) (2025-06-15)
 
 
