@@ -47,7 +47,7 @@ func Crawl(baseURL, currentURL string, currentDepth int, concurrency int) {
 				// Only recursively crawl internal links
 				if !link.IsExternal {
 					// Start a new goroutine for each internal link to crawl it
-					go Crawl(baseURL, link.TargetURL, d+1, model.Concurrency)
+					Crawl(baseURL, link.TargetURL, d+1, model.Concurrency)
 				}
 			}
 		}
@@ -127,7 +127,7 @@ func extractLinks(baseUrlParsed *url.URL, pageURL string, doc *goquery.Document)
 
 		isExternal := baseUrlParsed.Hostname() != linkURL.Hostname()
 
-		if (model.OnlyInternal && isExternal) {
+		if model.OnlyInternal && isExternal {
 			return
 		}
 
