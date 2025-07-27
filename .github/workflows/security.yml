@@ -1,0 +1,217 @@
+name: 🛡️ Security Scanning
+
+on:
+  push:
+    branches: [ "master", "develop" ]
+  pull_request:
+    branches: [ "master" ]
+  schedule:
+    # Run security scans daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # ==============================================================================
+  # 🔍 Code Security Analysis
+  # ==============================================================================
+  codeql:
+    name: 🔍 CodeQL Analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'go' ]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: 🐹 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: 🏗️ Build application
+        run: |
+          go mod download
+          go build -v ./...
+
+      - name: 🔬 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # ==============================================================================
+  # 🛡️ Go Security Checker
+  # ==============================================================================
+  gosec:
+    name: 🛡️ Gosec Security Scanner
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐹 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: 🛡️ Run Gosec Security Scanner
+        uses: securecodewarrior/github-action-gosec@master
+        with:
+          args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
+
+      - name: 📤 Upload Gosec results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gosec-results.sarif
+
+      - name: 📊 Generate Gosec report
+        run: |
+          go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+          gosec -fmt=json -out=gosec-report.json ./...
+          gosec -fmt=html -out=gosec-report.html ./...
+
+      - name: 📤 Upload Gosec reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: gosec-reports
+          path: |
+            gosec-report.json
+            gosec-report.html
+
+  # ==============================================================================
+  # 🔐 Dependency Vulnerability Scanning
+  # ==============================================================================
+  govulncheck:
+    name: 🔐 Go Vulnerability Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐹 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: 🔐 Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: 🔍 Run vulnerability check
+        run: govulncheck ./...
+
+  # ==============================================================================
+  # 📦 Nancy Dependency Scanner
+  # ==============================================================================
+  nancy:
+    name: 📦 Nancy Dependency Scanner
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐹 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: 📦 Install Nancy
+        run: |
+          curl -L https://github.com/sonatypecommunity/nancy/releases/download/v1.0.42/nancy-v1.0.42-linux-amd64 -o nancy
+          chmod +x nancy
+
+      - name: 🔍 Run Nancy scan
+        run: |
+          go list -json -deps ./... | ./nancy sleuth
+
+  # ==============================================================================
+  # 🛡️ Trivy Filesystem Scan
+  # ==============================================================================
+  trivy-fs:
+    name: 🛡️ Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛡️ Run Trivy vulnerability scanner (Filesystem)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+
+      - name: 📤 Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+
+  # ==============================================================================
+  # 🔒 License Compliance Check
+  # ==============================================================================
+  license-check:
+    name: 🔒 License Compliance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐹 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: 🔒 Install go-licenses
+        run: go install github.com/google/go-licenses@latest
+
+      - name: 🔍 Check licenses
+        run: |
+          go-licenses check ./...
+          go-licenses report ./... > licenses-report.txt
+
+      - name: 📤 Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: licenses-report.txt
+
+  # ==============================================================================
+  # 📊 Security Summary
+  # ==============================================================================
+  security-summary:
+    name: 📊 Security Summary
+    runs-on: ubuntu-latest
+    needs: [codeql, gosec, govulncheck, nancy, trivy-fs, license-check]
+    if: always()
+
+    steps:
+      - name: 📊 Security scan summary
+        run: |
+          echo "## 🛡️ Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scanner | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| CodeQL | ${{ needs.codeql.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gosec | ${{ needs.gosec.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Govulncheck | ${{ needs.govulncheck.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Nancy | ${{ needs.nancy.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy FS | ${{ needs.trivy-fs.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| License Check | ${{ needs.license-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/DrakkarStorm/deadlinkr/logger"
@@ -39,9 +40,42 @@ func DisplayResults() {
 	}
 }
 
+// DetectFormatFromOutput detects the format from the output file extension
+func DetectFormatFromOutput(outputPath string) string {
+	if outputPath == "" {
+		return ""
+	}
+	
+	ext := strings.ToLower(filepath.Ext(outputPath))
+	switch ext {
+	case ".csv":
+		return "csv"
+	case ".json":
+		return "json"
+	case ".html", ".htm":
+		return "html"
+	default:
+		return ""
+	}
+}
+
 // ExportResults exports the results of the link check to a file.
-// example: ExportResults("csv") -> "deadlinkr-report.csv"
+// Auto-detects format from output file extension if format is empty
 func ExportResults(format string) {
+	// Auto-detect format from output file extension if not specified
+	if format == "" && model.Output != "" {
+		format = DetectFormatFromOutput(model.Output)
+		if format != "" {
+			logger.Debugf("Auto-detected format '%s' from output file extension", format)
+		}
+	}
+	
+	// If still no format, default to displaying results
+	if format == "" {
+		DisplayResults()
+		return
+	}
+	
 	switch strings.ToLower(format) {
 	case "csv":
 		exportToCSV()
@@ -66,7 +100,11 @@ func exportToCSV() {
 		logger.Errorf("Error creating CSV file: %s\n", err)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.Errorf("Error closing CSV file: %s\n", err)
+		}
+	}()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
@@ -116,7 +154,11 @@ func exportToJSON() {
 		logger.Errorf("Error creating JSON file: %s\n", err)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.Errorf("Error closing JSON file: %s\n", err)
+		}
+	}()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
@@ -140,7 +182,11 @@ func exportToHTML() {
 		logger.Errorf("Error creating HTML file: %s\n", err)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.Errorf("Error closing HTML file: %s\n", err)
+		}
+	}()
 
 	// Create simple HTML report
 	html := `<!DOCTYPE html>
@@ -187,7 +233,7 @@ func exportToHTML() {
 		}
 
 		if rowClass == "good" {
-			if model.DisplayOnlyError {
+			if !model.ShowAll {
 				continue
 			}
 		}

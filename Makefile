@@ -106,22 +106,100 @@ uninstall:
 	@sudo rm -f /usr/local/bin/$(BINARY_NAME)
 	@echo "DeadLinkr uninstalled"
 
+
+# ==============================================================================
+# Docker Commands
+# ==============================================================================
+
+# Docker configuration
+DOCKER_IMAGE=$(BINARY_NAME)
+DOCKER_TAG=latest
+DOCKER_REGISTRY=ghcr.io
+DOCKER_REPO=drakkarstorm/deadlinkr
+
+# Build Docker image
+.PHONY: docker-build
+docker-build:
+	@echo "🐳 Building Docker image..."
+	@./scripts/docker-build.sh --tag $(DOCKER_TAG)
+
+# Build and push Docker image
+.PHONY: docker-push
+docker-push:
+	@echo "🐳 Building and pushing Docker image..."
+	@./scripts/docker-build.sh --tag $(DOCKER_TAG) --push
+
+# Build multi-architecture Docker image
+.PHONY: docker-build-multi
+docker-build-multi:
+	@echo "🐳 Building multi-architecture Docker image..."
+	@./scripts/docker-build.sh --tag $(DOCKER_TAG) --multi-arch --push
+
+# Run Docker container
+.PHONY: docker-run
+docker-run:
+	@echo "🐳 Running Docker container..."
+	@docker run --rm $(DOCKER_IMAGE):$(DOCKER_TAG) --help
+
+# Test Docker image
+.PHONY: docker-test
+docker-test:
+	@echo "🧪 Testing Docker image..."
+	@docker run --rm $(DOCKER_IMAGE):$(DOCKER_TAG) scan https://httpbin.org/get --timeout 10
+
+# Security scan Docker image
+.PHONY: docker-scan
+docker-scan:
+	@echo "🛡️ Scanning Docker image for vulnerabilities..."
+	@./scripts/docker-build.sh --tag $(DOCKER_TAG) --scan
+
+
+# Clean Docker artifacts
+.PHONY: docker-clean
+docker-clean:
+	@echo "🧹 Cleaning Docker artifacts..."
+	@docker image prune -f
+	@docker container prune -f
+	@docker volume prune -f
+
+# ==============================================================================
 # Help
+# ==============================================================================
 .PHONY: help
 help:
 	@echo "🚀 DeadLinkr - Makefile Commands Available:"
+	@echo ""
+	@echo "📦 Build Commands:"
 	@echo "  make            - Clean, lint, test and build the project"
 	@echo "  make deps       - Check dependencies"
 	@echo "  make tools      - Install development tools"
+	@echo "  make build      - Build the binary"
+	@echo "  make build-all  - Build for all platforms"
+	@echo ""
+	@echo "🧪 Test Commands:"
 	@echo "  make lint       - Static code analysis"
 	@echo "  make test       - Run tests"
 	@echo "  make coverage   - Generate test coverage report"
-	@echo "  make build      - Build the binary"
-	@echo "  make build-all  - Build for all platforms"
+	@echo ""
+	@echo "🐳 Docker Commands:"
+	@echo "  make docker-build       - Build Docker image"
+	@echo "  make docker-push        - Build and push Docker image"
+	@echo "  make docker-build-multi - Build multi-architecture image"
+	@echo "  make docker-run         - Run Docker container"
+	@echo "  make docker-test        - Test Docker image"
+	@echo "  make docker-scan        - Security scan Docker image"
+	@echo "  make docker-clean       - Clean Docker artifacts"
+	@echo ""
+	@echo "🔧 System Commands:"
 	@echo "  make install    - Install the binary"
 	@echo "  make uninstall  - Uninstall the binary"
 	@echo "  make clean      - Clean build artifacts"
 	@echo "  make help       - Show this help message"
+	@echo ""
+	@echo "📖 Examples:"
+	@echo "  make docker-build DOCKER_TAG=v1.0.0"
+	@echo "  make docker-push DOCKER_TAG=latest"
+	@echo "  make docker-test DOCKER_TAG=dev"
 
 # Default
 .DEFAULT_GOAL := help

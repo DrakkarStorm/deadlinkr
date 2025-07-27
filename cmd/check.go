@@ -25,10 +25,15 @@ var checkCmd = &cobra.Command{
 
 		logger.Infof("Check complete. Found %d links, %d broken.", len(model.Results), utils.CountBrokenLinks())
 
-		if model.Format != "" {
-			utils.ExportResults(model.Format)
-		} else {
-			utils.DisplayResults()
+		// Auto-detect format from output file if not specified
+		format := model.Format
+		if format == "" && model.Output != "" {
+			format = utils.DetectFormatFromOutput(model.Output)
+		}
+		
+		logger.Debugf("Exporting results with format: %s, output: %s", format, model.Output)
+		if format != "" || model.Output != "" {
+			utils.ExportResults(format)
 		}
 	},
 }
@@ -36,6 +41,4 @@ var checkCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(checkCmd)
 
-	// Define a flag for the export format
-	checkCmd.Flags().String("format", "", "Export format (csv, json, html)")
 }
