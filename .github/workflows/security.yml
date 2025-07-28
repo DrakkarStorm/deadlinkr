@@ -68,10 +68,10 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: 🛡️ Run Gosec Security Scanner
-        uses: securecodewarrior/github-action-gosec@master
-        with:
-          args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
+      - name: 🛡️ Install and run Gosec Security Scanner
+        run: |
+          go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+          gosec -no-fail -fmt sarif -out gosec-results.sarif ./...
 
       - name: 📤 Upload Gosec results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -115,29 +115,30 @@ jobs:
         run: govulncheck ./...
 
   # ==============================================================================
-  # 📦 Nancy Dependency Scanner
+  # 📦 OSV Dependency Scanner
   # ==============================================================================
-  nancy:
-    name: 📦 Nancy Dependency Scanner
+  osv-scanner:
+    name: 📦 OSV Dependency Scanner
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐹 Set up Go
-        uses: actions/setup-go@v5
+      - name: 🔍 Run OSV Scanner
+        uses: google/osv-scanner-action@v1
         with:
-          go-version: '1.24'
+          scan-args: |-
+            -r
+            --format=sarif
+            --output=osv-results.sarif
+            .
 
-      - name: 📦 Install Nancy
-        run: |
-          curl -L https://github.com/sonatypecommunity/nancy/releases/download/v1.0.42/nancy-v1.0.42-linux-amd64 -o nancy
-          chmod +x nancy
-
-      - name: 🔍 Run Nancy scan
-        run: |
-          go list -json -deps ./... | ./nancy sleuth
+      - name: 📤 Upload OSV scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: osv-results.sarif
 
   # ==============================================================================
   # 🛡️ Trivy Filesystem Scan
@@ -199,7 +200,7 @@ jobs:
   security-summary:
     name: 📊 Security Summary
     runs-on: ubuntu-latest
-    needs: [codeql, gosec, govulncheck, nancy, trivy-fs, license-check]
+    needs: [codeql, gosec, govulncheck, osv-scanner, trivy-fs, license-check]
     if: always()
 
     steps:
@@ -212,6 +213,6 @@ jobs:
           echo "| CodeQL | ${{ needs.codeql.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Gosec | ${{ needs.gosec.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Govulncheck | ${{ needs.govulncheck.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Nancy | ${{ needs.nancy.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| OSV Scanner | ${{ needs.osv-scanner.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Trivy FS | ${{ needs.trivy-fs.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| License Check | ${{ needs.license-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
