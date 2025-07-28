@@ -22,7 +22,7 @@ func TestOptimizedLinkCheckerService_CheckLink(t *testing.T) {
 		case "GET":
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("<html><body>Test page</body></html>"))
+			_, _ = w.Write([]byte("<html><body>Test page</body></html>"))
 		}
 	}))
 	defer server.Close()
@@ -57,7 +57,7 @@ func TestOptimizedLinkCheckerService_HeadFallback(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("<html><body>Test page</body></html>"))
+		_, _ = w.Write([]byte("<html><body>Test page</body></html>"))
 	}))
 	defer server.Close()
 
@@ -138,7 +138,7 @@ func TestOptimizedLinkCheckerService_FileDetection(t *testing.T) {
 			w.Header().Set("Content-Type", "text/html")
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test content"))
+		_, _ = w.Write([]byte("test content"))
 	}))
 	defer server.Close()
 

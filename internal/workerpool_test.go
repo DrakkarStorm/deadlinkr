@@ -146,7 +146,7 @@ func TestOptimizedCrawler(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`<html><body><a href="/test">Test Link</a></body></html>`))
+			_, _ = w.Write([]byte(`<html><body><a href="/test">Test Link</a></body></html>`))
 		}))
 		defer server.Close()
 		

@@ -43,7 +43,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 				return
 			}
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("authenticated"))
+			_, _ = w.Write([]byte("authenticated"))
 		}))
 		defer server.Close()
 
@@ -65,7 +65,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -84,7 +84,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 				return
 			}
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("authenticated"))
+			_, _ = w.Write([]byte("authenticated"))
 		}))
 		defer server.Close()
 
@@ -105,7 +105,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -123,7 +123,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 				return
 			}
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("authenticated"))
+			_, _ = w.Write([]byte("authenticated"))
 		}))
 		defer server.Close()
 
@@ -147,7 +147,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -165,7 +165,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 				return
 			}
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("authenticated"))
+			_, _ = w.Write([]byte("authenticated"))
 		}))
 		defer server.Close()
 
@@ -186,7 +186,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -204,7 +204,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 				return
 			}
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("authenticated"))
+			_, _ = w.Write([]byte("authenticated"))
 		}))
 		defer server.Close()
 
@@ -228,7 +228,7 @@ func TestAuthenticatedHTTPClient(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status 200, got %d", resp.StatusCode)

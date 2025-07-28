@@ -207,7 +207,11 @@ func (wp *WorkerPool) processJob(workerID int, job Job) {
 func (wp *WorkerPool) GetStats() PoolStats {
 	wp.stats.mutex.RLock()
 	defer wp.stats.mutex.RUnlock()
-	return *wp.stats
+	return PoolStats{
+		JobsQueued:    wp.stats.JobsQueued,
+		JobsCompleted: wp.stats.JobsCompleted,
+		JobsActive:    wp.stats.JobsActive,
+	}
 }
 
 // SetProgressTracker sets the progress tracker for this worker pool

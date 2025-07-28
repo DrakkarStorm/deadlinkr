@@ -221,15 +221,12 @@ func (c *OptimizedCrawlerService) runProgressUpdates() {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 	
-	for {
-		select {
-		case <-ticker.C:
-			if c.workerPool.IsIdle() && c.activeJobs == (sync.WaitGroup{}) {
-				return // Crawling is done
-			}
-			c.updateProgressStats()
-			c.progressTracker.RenderProgressBar()
+	for range ticker.C {
+		if c.workerPool.IsIdle() && c.activeJobs == (sync.WaitGroup{}) {
+			return // Crawling is done
 		}
+		c.updateProgressStats()
+		c.progressTracker.RenderProgressBar()
 	}
 }
 

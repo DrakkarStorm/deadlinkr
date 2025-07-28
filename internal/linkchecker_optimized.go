@@ -217,7 +217,13 @@ func (olc *OptimizedLinkCheckerService) recordHeadFailure(domain string) {
 func (olc *OptimizedLinkCheckerService) GetOptimizationStats() OptimizedLinkStats {
 	olc.stats.mutex.RLock()
 	defer olc.stats.mutex.RUnlock()
-	return *olc.stats
+	return OptimizedLinkStats{
+		HeadRequestsUsed: olc.stats.HeadRequestsUsed,
+		GetRequestsUsed:  olc.stats.GetRequestsUsed,
+		HeadFallbacks:    olc.stats.HeadFallbacks,
+		BytesSaved:       olc.stats.BytesSaved,
+		TimeSaved:        olc.stats.TimeSaved,
+	}
 }
 
 func (stats *OptimizedLinkStats) incrementHeadRequests() {
