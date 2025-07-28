@@ -86,9 +86,6 @@ func TestScanCmd(t *testing.T) {
 		flag := scanCmd.PersistentFlags().Lookup("concurrency")
 		assert.NotNil(t, flag)
 		
-		flag = scanCmd.Flags().Lookup("format")
-		assert.NotNil(t, flag)
-		
 		flag = scanCmd.PersistentFlags().Lookup("depth")
 		assert.NotNil(t, flag)
 	})

@@ -307,6 +307,11 @@ func TestExportToHTML(t *testing.T) {
 		},
 	}
 
+	// Configure to show all links (not just errors)
+	originalShowAll := model.ShowAll
+	model.ShowAll = true
+	defer func() { model.ShowAll = originalShowAll }()
+
 	// Test HTML export
 	ExportResults("html")
 
@@ -435,6 +440,11 @@ func TestExportHTMLWithCustomOutput(t *testing.T) {
 			IsExternal: false,
 		},
 	}
+
+	// Configure to show all links (not just errors)
+	originalShowAll := model.ShowAll
+	model.ShowAll = true
+	defer func() { model.ShowAll = originalShowAll }()
 
 	ExportResults("html")
 
