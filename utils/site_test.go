@@ -77,13 +77,11 @@ func setupTestState() func() {
 	// Initialize logger
 	logger.InitLogger("debug")
 	
-	// Save original state
+	// Save original state (avoid copying locks)
 	originalResults := model.Results
 	originalDepth := model.Depth
 	originalConcurrency := model.Concurrency
 	originalTimeout := model.Timeout
-	originalVisited := model.VisitedURLs
-	originalWg := model.Wg
 	
 	// Reset to clean state
 	model.Results = []model.LinkResult{}
@@ -99,8 +97,9 @@ func setupTestState() func() {
 		model.Depth = originalDepth
 		model.Concurrency = originalConcurrency
 		model.Timeout = originalTimeout
-		model.VisitedURLs = originalVisited
-		model.Wg = originalWg
+		// Don't restore sync structures - leave them clean for next test
+		model.VisitedURLs = sync.Map{}
+		model.Wg = sync.WaitGroup{}
 	}
 }
 
