@@ -134,7 +134,7 @@ jobs:
           go-version: '1.24'
 
       - name: 🔍 Run OSV Scanner
-        uses: google/osv-scanner-action@v1
+        uses: google/osv-scanner-action@v2.1.0
         with:
           scan-args: |-
             -r
