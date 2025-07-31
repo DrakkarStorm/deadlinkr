@@ -84,7 +84,9 @@ func StringToLogLevel(level string) LogLevel {
 
 func CloseLogger() {
 	if logFile != nil {
-		logFile.Close()
+		if err := logFile.Close(); err != nil {
+			log.Printf("Error closing log file: %v", err)
+		}
 	}
 }
 

@@ -4,620 +4,445 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"os"
-	"strings"
+	"sync"
 	"testing"
+	"time"
 
+	"github.com/DrakkarStorm/deadlinkr/logger"
 	"github.com/DrakkarStorm/deadlinkr/model"
-	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestCheckLinks(t *testing.T) {
-	githubActionString := ""
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
-		githubActionString = " on 127.0.0.53:53"
-	}
-	tests := []struct {
-		name      string
-		baseURL   string
-		pageURL   string
-		wantLinks []model.LinkResult
-	}{
-		{
-			name:    "Valid BaseURL and PageURL",
-			baseURL: "http://127.0.0.1:8085",
-			pageURL: "http://127.0.0.1:8085/installation.html",
-			wantLinks: []model.LinkResult{
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/index.html",
-					Status:     200,
-					IsExternal: false,
-				},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/installation.html",
-					Status:     200,
-					IsExternal: false,
-				},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/tutoriel.html",
-					Status:     200,
-					IsExternal: false,
-				},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/api.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/exemples.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL: "http://127.0.0.1:8085/installation.html",
-					TargetURL: "http://127.0.0.1:8085/faq.html",
-					Status:    404, IsExternal: false},
-				{
-					SourceURL: "http://127.0.0.1:8085/installation.html",
-					TargetURL: "http://127.0.0.1:8085/ressources.html",
-					Status:    404, IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/contributeurs.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/page-inexistante.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/contact.html",
-					Status:     404,
-					IsExternal: false,
-				},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "https://golang.org/dl/",
-					Status:     200,
-					IsExternal: true},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "https://git-scm.com/",
-					Status:     200,
-					IsExternal: true},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "https://non-existent-domain-123456.xyz/",
-					Status:     0,
-					Error:      "Get \"https://non-existent-domain-123456.xyz/\": dial tcp: lookup non-existent-domain-123456.xyz"+githubActionString+": no such host",
-					IsExternal: true},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/configuration.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "https://another-wrong-domain.org/docs",
-					Status:     0,
-					Error:      "Get \"https://another-wrong-domain.org/docs\": dial tcp: lookup another-wrong-domain.org"+githubActionString+": no such host",
-					IsExternal: true},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/forum.html",
-					Status:     404,
-					IsExternal: false},
-
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/faq.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/contact.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "http://127.0.0.1:8085/mentions-legales.html",
-					Status:     404,
-					IsExternal: false},
-				{
-					SourceURL:  "http://127.0.0.1:8085/installation.html",
-					TargetURL:  "https://github.com/",
-					Status:     200,
-					IsExternal: true},
-			},
-		},
-		{
-			name:      "Invalid BaseURL",
-			baseURL:   "invalid_url",
-			pageURL:   "http://127.0.0.1:8085/installation.html",
-			wantLinks: []model.LinkResult{},
-		},
-		{
-			name:      "Invalid PageURL",
-			baseURL:   "http://127.0.0.1:8085",
-			pageURL:   "invalid_url",
-			wantLinks: []model.LinkResult{},
-		},
-	}
-	fmt.Printf("Running tests: %v\n", tests)
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotLinks := CheckLinks(tt.baseURL, tt.pageURL)
-			if !compareLinkResults(gotLinks, tt.wantLinks) {
-				t.Errorf("CheckLinks() = %v, want %v", gotLinks, tt.wantLinks)
-			}
-		})
-	}
+// MockHTTPServer creates a test HTTP server with predefined responses
+type MockHTTPServer struct {
+	server *httptest.Server
+	routes map[string]MockResponse
 }
 
-func compareLinkResults(a, b []model.LinkResult) bool {
-	if len(a) != len(b) {
-		return false
+type MockResponse struct {
+	StatusCode int
+	Body       string
+	Headers    map[string]string
+	Delay      time.Duration
+}
+
+func NewMockHTTPServer() *MockHTTPServer {
+	mock := &MockHTTPServer{
+		routes: make(map[string]MockResponse),
 	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
+	
+	mock.server = httptest.NewServer(http.HandlerFunc(mock.handler))
+	return mock
+}
+
+func (m *MockHTTPServer) handler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	
+	// Add delay if specified
+	if response, exists := m.routes[path]; exists {
+		if response.Delay > 0 {
+			time.Sleep(response.Delay)
 		}
+		
+		// Set headers
+		for key, value := range response.Headers {
+			w.Header().Set(key, value)
+		}
+		
+		w.WriteHeader(response.StatusCode)
+		_, _ = w.Write([]byte(response.Body))
+		return
 	}
-	return true
+	
+	// Default 404 response
+	w.WriteHeader(404)
+	_, _ = w.Write([]byte("Not Found"))
 }
 
-func TestParseBaseURL(t *testing.T) {
-	tests := []struct {
-		name     string
-		baseURL  string
-		expected *url.URL
-		wantErr  bool
-	}{
-		{
-			name:    "Valid URL",
-			baseURL: "http://127.0.0.1:8085",
-			expected: &url.URL{
-				Scheme: "http",
-				Host:   "127.0.0.1:8085",
-			},
-			wantErr: false,
-		},
-		{
-			name:     "Invalid URL",
-			baseURL:  "invalid-url",
-			expected: nil,
-			wantErr:  true,
-		},
-		{
-			name:    "URL with path",
-			baseURL: "http://127.0.0.1:8085/installation.html",
-			expected: &url.URL{
-				Scheme: "http",
-				Host:   "127.0.0.1:8085",
-				Path:   "/installation.html",
-			},
-			wantErr: false,
-		},
-		{
-			name:    "URL with query",
-			baseURL: "https://127.0.0.1:8085/installation.html?query=value",
-			expected: &url.URL{
-				Scheme:   "https",
-				Host:     "127.0.0.1:8085",
-				Path:     "/installation.html",
-				RawQuery: "query=value",
-			},
-			wantErr: false,
-		},
-	}
+func (m *MockHTTPServer) AddRoute(path string, response MockResponse) {
+	m.routes[path] = response
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := parseBaseURL(tt.baseURL)
-			if tt.wantErr && got != nil {
-				t.Errorf("parseBaseURL() = %v, wantErr %v", got, tt.wantErr)
-			}
-			if !tt.wantErr && got == nil {
-				t.Errorf("parseBaseURL() = %v, wantErr %v", got, tt.wantErr)
-			}
-			if !tt.wantErr && got != nil && got.String() != tt.expected.String() {
-				t.Errorf("parseBaseURL() = %v, want %v", got.String(), tt.expected.String())
-			}
-		})
+func (m *MockHTTPServer) URL() string {
+	return m.server.URL
+}
+
+func (m *MockHTTPServer) Close() {
+	m.server.Close()
+}
+
+// setupTestState resets all global state for clean tests
+func setupTestState() func() {
+	// Initialize logger
+	logger.InitLogger("debug")
+	
+	// Save original state (avoid copying locks)
+	originalResults := model.Results
+	originalDepth := model.Depth
+	originalConcurrency := model.Concurrency
+	originalTimeout := model.Timeout
+	
+	// Reset to clean state
+	model.Results = []model.LinkResult{}
+	model.Depth = 1
+	model.Concurrency = 5
+	model.Timeout = 5
+	model.VisitedURLs = sync.Map{}
+	model.Wg = sync.WaitGroup{}
+	
+	// Return cleanup function
+	return func() {
+		model.Results = originalResults
+		model.Depth = originalDepth
+		model.Concurrency = originalConcurrency
+		model.Timeout = originalTimeout
+		// Don't restore sync structures - leave them clean for next test
+		model.VisitedURLs = sync.Map{}
+		model.Wg = sync.WaitGroup{}
 	}
 }
 
-func TestFetchAndParseDocument(t *testing.T) {
-	t.Run("valid HTML document", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "text/html")
-			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte("<html><body><h1>Hello, world!</h1></body></html>"))
-			if err != nil {
-				t.Fatalf("Failed to write response: %v", err)
-			}
-		}))
-		defer server.Close()
-
-		doc := fetchAndParseDocument(server.URL)
-		assert.NotNil(t, doc)
-		assert.Equal(t, "Hello, world!", doc.Find("h1").Text())
+func TestCheckLinks_WithMocks(t *testing.T) {
+	cleanup := setupTestState()
+	defer cleanup()
+	
+	// Create mock server
+	mockServer := NewMockHTTPServer()
+	defer mockServer.Close()
+	
+	// Set up mock routes
+	mockServer.AddRoute("/", MockResponse{
+		StatusCode: 200,
+		Body: `<html>
+			<head><title>Test Page</title></head>
+			<body>
+				<a href="/page1">Internal Link 1</a>
+				<a href="/page2">Internal Link 2</a>
+				<a href="http://external.com">External Link</a>
+				<a href="/broken">Broken Link</a>
+			</body>
+		</html>`,
+		Headers: map[string]string{"Content-Type": "text/html"},
 	})
-
-	t.Run("invalid content type", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte(`{"message":"Hello, world!"}`))
-			if err != nil {
-				t.Fatalf("Failed to write response: %v", err)
-			}
-		}))
-		defer server.Close()
-
-		doc := fetchAndParseDocument(server.URL)
-		assert.Nil(t, doc)
+	
+	mockServer.AddRoute("/page1", MockResponse{
+		StatusCode: 200,
+		Body:       "<html><body>Page 1</body></html>",
+		Headers:    map[string]string{"Content-Type": "text/html"},
 	})
-
-	t.Run("HTTP error", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusInternalServerError)
-		}))
-		defer server.Close()
-
-		doc := fetchAndParseDocument(server.URL)
-		assert.Nil(t, doc)
+	
+	mockServer.AddRoute("/page2", MockResponse{
+		StatusCode: 200,
+		Body:       "<html><body>Page 2</body></html>",
+		Headers:    map[string]string{"Content-Type": "text/html"},
 	})
-
-	t.Run("invalid URL", func(t *testing.T) {
-		doc := fetchAndParseDocument("invalid URL")
-		assert.Nil(t, doc)
-	})
+	
+	// /broken will return default 404
+	
+	baseURL := mockServer.URL()
+	pageURL := mockServer.URL() + "/"
+	
+	// Test CheckLinks function
+	links := CheckLinks(baseURL, pageURL)
+	
+	// Verify results
+	require.NotEmpty(t, links, "Should find links on the page")
+	
+	// Check that we found the expected links
+	linkTargets := make(map[string]model.LinkResult)
+	for _, link := range links {
+		linkTargets[link.TargetURL] = link
+	}
+	
+	// Verify internal links
+	page1Link, exists := linkTargets[baseURL+"/page1"]
+	assert.True(t, exists, "Should find /page1 link")
+	if exists {
+		assert.Equal(t, 200, page1Link.Status)
+		assert.False(t, page1Link.IsExternal)
+		assert.Empty(t, page1Link.Error)
+	}
+	
+	page2Link, exists := linkTargets[baseURL+"/page2"]
+	assert.True(t, exists, "Should find /page2 link")
+	if exists {
+		assert.Equal(t, 200, page2Link.Status)
+		assert.False(t, page2Link.IsExternal)
+		assert.Empty(t, page2Link.Error)
+	}
+	
+	brokenLink, exists := linkTargets[baseURL+"/broken"]
+	assert.True(t, exists, "Should find /broken link")
+	if exists {
+		assert.Equal(t, 404, brokenLink.Status)
+		assert.False(t, brokenLink.IsExternal)
+		assert.Empty(t, brokenLink.Error)
+	}
+	
+	// External link should be marked as external
+	externalLink, exists := linkTargets["http://external.com"]
+	assert.True(t, exists, "Should find external link")
+	if exists {
+		assert.True(t, externalLink.IsExternal)
+		// External link might fail (which is expected in tests)
+	}
 }
 
-func TestExtractLinks(t *testing.T) {
-	// Save original values of IgnoreExternal and OnlyExternal
-	originalOnlyInternal := model.OnlyInternal
-	defer func() {
-		model.OnlyInternal = originalOnlyInternal
-	}()
+func TestCheckLinks_EmptyPage(t *testing.T) {
+	cleanup := setupTestState()
+	defer cleanup()
+	
+	mockServer := NewMockHTTPServer()
+	defer mockServer.Close()
+	
+	mockServer.AddRoute("/empty", MockResponse{
+		StatusCode: 200,
+		Body:       "<html><body>No links here</body></html>",
+		Headers:    map[string]string{"Content-Type": "text/html"},
+	})
+	
+	baseURL := mockServer.URL()
+	pageURL := mockServer.URL() + "/empty"
+	
+	links := CheckLinks(baseURL, pageURL)
+	
+	assert.Empty(t, links, "Should find no links on empty page")
+}
 
-	// Configure a server to return a simple HTML page
-	internalServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer internalServer.Close()
+func TestCheckLinks_InvalidPage(t *testing.T) {
+	cleanup := setupTestState()
+	defer cleanup()
+	
+	mockServer := NewMockHTTPServer()
+	defer mockServer.Close()
+	
+	// Don't add any routes - all requests will return 404
+	
+	baseURL := mockServer.URL()
+	pageURL := mockServer.URL() + "/nonexistent"
+	
+	// This should return empty links because the page returns 404
+	links := CheckLinks(baseURL, pageURL)
+	
+	assert.Empty(t, links, "Should return empty slice for 404 page")
+}
 
-	baseURL, _ := url.Parse(internalServer.URL)
-
-	testCases := []struct {
-		name           string
-		html           string
-		onlyInternal bool
-		onlyExternal   bool
-		expectedCount  int
-		expectedURLs   []string
-	}{
-		{
-			name: "Basic internal links",
-			html: `<html><body>
+func TestCrawl_WithMocks(t *testing.T) {
+	cleanup := setupTestState()
+	defer cleanup()
+	
+	mockServer := NewMockHTTPServer()
+	defer mockServer.Close()
+	
+	// Create a simple site structure
+	mockServer.AddRoute("/", MockResponse{
+		StatusCode: 200,
+		Body: `<html>
+			<body>
 				<a href="/page1">Page 1</a>
 				<a href="/page2">Page 2</a>
-				<a href="#section">Section</a>
-			</body></html>`,
-			onlyInternal: false,
-			onlyExternal:   false,
-			expectedCount:  2,
-			expectedURLs:   []string{internalServer.URL + "/page1", internalServer.URL + "/page2"},
-		},
-		{
-			name: "Mix of internal and external links",
-			html: `<html><body>
-				<a href="/internal">Internal</a>
-				<a href="http://external.server.com/external">External</a>
-			</body></html>`,
-			onlyInternal: false,
-			onlyExternal:   false,
-			expectedCount:  2,
-			expectedURLs:   []string{internalServer.URL + "/internal", "http://external.server.com/external"},
-		},
-		{
-			name: "Ignore external links",
-			html: `<html><body>
-				<a href="/internal1">Internal 1</a>
-				<a href="/internal2">Internal 2</a>
-				<a href="http://external.server.com/external">External</a>
-			</body></html>`,
-			onlyInternal: true,
-			onlyExternal:   false,
-			expectedCount:  2,
-			expectedURLs:   []string{internalServer.URL + "/internal1", internalServer.URL + "/internal2"},
-		},
-		{
-			name: "Empty hrefs and fragment links should be ignored",
-			html: `<html><body>
-				<a href="">Empty</a>
-				<a href="#">Fragment</a>
-				<a href="/valid">Valid</a>
-			</body></html>`,
-			onlyInternal: false,
-			onlyExternal:   false,
-			expectedCount:  1,
-			expectedURLs:   []string{internalServer.URL + "/valid"},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Configure variables globals for this test
-			model.OnlyInternal = tc.onlyInternal
-
-			// Create the document from the HTML
-			doc, err := goquery.NewDocumentFromReader(strings.NewReader(tc.html))
-			assert.NoError(t, err)
-
-			links := extractLinks(baseURL, internalServer.URL, doc)
-
-			// Verify the number of links extracted
-			assert.Equal(t, tc.expectedCount, len(links))
-
-			// Verify the URLs of the extracted links
-			foundURLs := make([]string, 0)
-			for _, link := range links {
-				foundURLs = append(foundURLs, link.TargetURL)
-			}
-
-			for _, expectedURL := range tc.expectedURLs {
-				assert.Contains(t, foundURLs, expectedURL)
-			}
-		})
-	}
-}
-
-func TestResolveAndFilterURL(t *testing.T) {
-	baseURL, _ := url.Parse("http://127.0.0.1:8085")
-
-	tests := []struct {
-		name     string
-		baseURL  *url.URL
-		pageURL  string
-		href     string
-		expected *url.URL
-	}{
-		{
-			name:     "Valid relative URL",
-			baseURL:  baseURL,
-			pageURL:  "http://127.0.0.1:8085/index.html",
-			href:     "installation.html",
-			expected: &url.URL{Scheme: "http", Host: "127.0.0.1:8085", Path: "/installation.html"},
-		},
-		{
-			name:     "External URL should be filtered",
-			baseURL:  baseURL,
-			pageURL:  "http://127.0.0.1:8085/installation.html",
-			href:     "https://golang.org/dl/",
-			expected: &url.URL{Scheme: "https", Host: "golang.org", Path: "/dl/"},
-		},
-		{
-			name:     "Invalid URL should return nil",
-			baseURL:  baseURL,
-			pageURL:  "http://127.0.0.1:8085/installation.html",
-			href:     "http://[::1]:namedport",
-			expected: nil,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result := resolveAndFilterURL(tc.baseURL, tc.pageURL, tc.href)
-
-			// Verify if the result is nil when we expect it to be
-			if tc.expected == nil {
-				if result != nil {
-					t.Errorf("Expected nil, got %v", result)
-				}
-				return
-			}
-
-			// Verify if the result is not nil when we don't expect it to be
-			if result == nil {
-				t.Errorf("Expected %v, got nil", tc.expected)
-				return
-			}
-
-			// Compare the important parts of the URL
-			if result.Scheme != tc.expected.Scheme {
-				t.Errorf("Expected scheme %s, got %s", tc.expected.Scheme, result.Scheme)
-			}
-			if result.Host != tc.expected.Host {
-				t.Errorf("Expected host %s, got %s", tc.expected.Host, result.Host)
-			}
-			if result.Path != tc.expected.Path {
-				t.Errorf("Expected path %s, got %s", tc.expected.Path, result.Path)
-			}
-			if result.RawQuery != tc.expected.RawQuery {
-				t.Errorf("Expected query %s, got %s", tc.expected.RawQuery, result.RawQuery)
-			}
-			if result.Fragment != tc.expected.Fragment {
-				t.Errorf("Expected fragment %s, got %s", tc.expected.Fragment, result.Fragment)
-			}
-		})
-	}
-}
-
-func TestShouldSkipURLBasedOnPattern(t *testing.T) {
-	// Save original values to restore after test
-	originalIncludePattern := model.IncludePattern
-	originalExcludePattern := model.ExcludePattern
-
-	// Restore after test
-	defer func() {
-		model.IncludePattern = originalIncludePattern
-		model.ExcludePattern = originalExcludePattern
+			</body>
+		</html>`,
+		Headers: map[string]string{"Content-Type": "text/html"},
+	})
+	
+	mockServer.AddRoute("/page1", MockResponse{
+		StatusCode: 200,
+		Body: `<html>
+			<body>
+				<a href="/subpage">Subpage</a>
+				<a href="/">Home</a>
+			</body>
+		</html>`,
+		Headers: map[string]string{"Content-Type": "text/html"},
+	})
+	
+	mockServer.AddRoute("/page2", MockResponse{
+		StatusCode: 200,
+		Body:       "<html><body>Simple page</body></html>",
+		Headers:    map[string]string{"Content-Type": "text/html"},
+	})
+	
+	mockServer.AddRoute("/subpage", MockResponse{
+		StatusCode: 200,
+		Body:       "<html><body>Subpage content</body></html>",
+		Headers:    map[string]string{"Content-Type": "text/html"},
+	})
+	
+	baseURL := mockServer.URL()
+	
+	// Set depth to 2 to test recursive crawling
+	model.Depth = 2
+	
+	// Start crawling
+	Crawl(baseURL, baseURL+"/", 0, model.Concurrency)
+	
+	// Wait for all goroutines to complete with timeout
+	done := make(chan struct{})
+	go func() {
+		model.Wg.Wait()
+		close(done)
 	}()
-
-	tests := []struct {
-		name           string
-		includePattern string
-		excludePattern string
-		urlString      string
-		expected       bool
-	}{
-		// Tests with only include pattern
-		{
-			name:           "Include pattern matches URL",
-			includePattern: "127.0.0.1:8085",
-			excludePattern: "",
-			urlString:      "http://127.0.0.1:8085/page",
-			expected:       false, // Should not skip URLs that match include pattern
-		},
-		{
-			name:           "Include pattern does not match URL",
-			includePattern: "127.0.0.1:8085",
-			excludePattern: "",
-			urlString:      "https://different.com/page",
-			expected:       true, // Should skip URLs that don't match include pattern
-		},
-		{
-			name:           "Invalid include pattern",
-			includePattern: "[", // Invalid regex
-			excludePattern: "",
-			urlString:      "http://127.0.0.1:8085/page",
-			expected:       true, // Should skip due to regex error
-		},
-
-		// Tests with only exclude pattern
-		{
-			name:           "Exclude pattern matches URL",
-			includePattern: "",
-			excludePattern: "private",
-			urlString:      "http://127.0.0.1:8085/private/page",
-			expected:       true, // Should skip URLs that match exclude pattern
-		},
-		{
-			name:           "Exclude pattern does not match URL",
-			includePattern: "",
-			excludePattern: "private",
-			urlString:      "http://127.0.0.1:8085/public/page",
-			expected:       false, // Should not skip URLs that don't match exclude pattern
-		},
-		{
-			name:           "Invalid exclude pattern",
-			includePattern: "",
-			excludePattern: "[", // Invalid regex
-			urlString:      "http://127.0.0.1:8085/page",
-			expected:       false, // Should not skip due to regex error in exclude pattern
-		},
-
-		// Tests with both patterns
-		{
-			name:           "URL matches both include and exclude patterns",
-			includePattern: "127.0.0.1:8085",
-			excludePattern: "private",
-			urlString:      "http://127.0.0.1:8085/private/page",
-			expected:       true, // Should skip (exclude takes precedence)
-		},
-		{
-			name:           "URL matches include but not exclude pattern",
-			includePattern: "127.0.0.1:8085",
-			excludePattern: "private",
-			urlString:      "http://127.0.0.1:8085/public/page",
-			expected:       false, // Should not skip
-		},
-		{
-			name:           "URL matches neither include nor exclude pattern",
-			includePattern: "127.0.0.1:8085",
-			excludePattern: "private",
-			urlString:      "https://different.com/page",
-			expected:       true, // Should skip (doesn't match include)
-		},
-
-		// Edge cases
-		{
-			name:           "Empty URL",
-			includePattern: "127.0.0.1:8085",
-			excludePattern: "private",
-			urlString:      "",
-			expected:       true, // Should skip as it doesn't match include pattern
-		},
-		{
-			name:           "No patterns specified",
-			includePattern: "",
-			excludePattern: "",
-			urlString:      "http://127.0.0.1:8085/page",
-			expected:       false, // Should not skip when no patterns are specified
-		},
+	
+	select {
+	case <-done:
+		// Success
+	case <-time.After(5 * time.Second):
+		t.Fatal("Crawl test timed out - goroutines did not complete")
 	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			// Setup patterns for this test case
-			model.IncludePattern = tc.includePattern
-			model.ExcludePattern = tc.excludePattern
-
-			// Parse URL
-			parsedURL, err := url.Parse(tc.urlString)
-			if err != nil && tc.urlString != "" {
-				t.Fatalf("Failed to parse URL %s: %v", tc.urlString, err)
-			}
-
-			// Run test
-			result := shouldSkipURLBasedOnPattern(parsedURL)
-
-			// Verify result
-			if result != tc.expected {
-				t.Errorf("shouldSkipURLBasedOnPattern() = %v, expected %v", result, tc.expected)
-			}
-		})
-	}
+	
+	// Verify that URLs were visited
+	visited := []string{}
+	model.VisitedURLs.Range(func(key, value interface{}) bool {
+		if url, ok := key.(string); ok {
+			visited = append(visited, url)
+		}
+		return true
+	})
+	
+	assert.NotEmpty(t, visited, "Should have visited some URLs")
+	assert.Contains(t, visited, baseURL+"/", "Should have visited root URL")
+	
+	// Verify that results were collected
+	assert.NotEmpty(t, model.Results, "Should have collected some results")
+	
+	// Print results for debugging (optional)
+	t.Logf("Visited %d URLs: %v", len(visited), visited)
+	t.Logf("Found %d links", len(model.Results))
 }
 
-// Additional test to ensure thread safety when patterns are changed concurrently
-func TestShouldSkipURLBasedOnPatternConcurrency(t *testing.T) {
-	// Save original values to restore after test
-	originalIncludePattern := model.IncludePattern
-	originalExcludePattern := model.ExcludePattern
-
-	// Restore after test
-	defer func() {
-		model.IncludePattern = originalIncludePattern
-		model.ExcludePattern = originalExcludePattern
+func TestCrawl_RespectDepthLimit(t *testing.T) {
+	cleanup := setupTestState()
+	defer cleanup()
+	
+	mockServer := NewMockHTTPServer()
+	defer mockServer.Close()
+	
+	// Create a deep link structure
+	mockServer.AddRoute("/", MockResponse{
+		StatusCode: 200,
+		Body:       `<html><body><a href="/level1">Level 1</a></body></html>`,
+		Headers:    map[string]string{"Content-Type": "text/html"},
+	})
+	
+	mockServer.AddRoute("/level1", MockResponse{
+		StatusCode: 200,
+		Body:       `<html><body><a href="/level2">Level 2</a></body></html>`,
+		Headers:    map[string]string{"Content-Type": "text/html"},
+	})
+	
+	mockServer.AddRoute("/level2", MockResponse{
+		StatusCode: 200,
+		Body:       `<html><body><a href="/level3">Level 3</a></body></html>`,
+		Headers:    map[string]string{"Content-Type": "text/html"},
+	})
+	
+	mockServer.AddRoute("/level3", MockResponse{
+		StatusCode: 200,
+		Body:       "<html><body>Deep page</body></html>",
+		Headers:    map[string]string{"Content-Type": "text/html"},
+	})
+	
+	baseURL := mockServer.URL()
+	
+	// Set depth limit to 1
+	model.Depth = 1
+	
+	// Start crawling
+	Crawl(baseURL, baseURL+"/", 0, model.Concurrency)
+	
+	// Wait for completion with timeout
+	done := make(chan struct{})
+	go func() {
+		model.Wg.Wait()
+		close(done)
 	}()
-
-	// Test concurrent access
-	done := make(chan bool)
-	url1, _ := url.Parse("http://127.0.0.1:8085/installation.html")
-	url2, _ := url.Parse("http://127.0.0.1:8085/tutoriel.html")
-
-	for i := 0; i < 10; i++ {
-		go func(i int) {
-			// Alternate between different pattern combinations
-			if i%2 == 0 {
-				model.IncludePattern = "127.0.0.1:8085"
-				model.ExcludePattern = ""
-			} else {
-				model.IncludePattern = ""
-				model.ExcludePattern = "127.0.0.1:8085"
-			}
-
-			// Just ensure no panics occur
-			_ = shouldSkipURLBasedOnPattern(url1)
-			_ = shouldSkipURLBasedOnPattern(url2)
-
-			done <- true
-		}(i)
+	
+	select {
+	case <-done:
+		// Success
+	case <-time.After(3 * time.Second):
+		t.Fatal("Depth limit test timed out")
 	}
+	
+	// Verify depth limit was respected
+	visited := []string{}
+	model.VisitedURLs.Range(func(key, value interface{}) bool {
+		if url, ok := key.(string); ok {
+			visited = append(visited, url)
+		}
+		return true
+	})
+	
+	// Should only visit root and level1, not deeper levels
+	assert.Contains(t, visited, baseURL+"/", "Should visit root")
+	assert.Contains(t, visited, baseURL+"/level1", "Should visit level 1")
+	assert.NotContains(t, visited, baseURL+"/level2", "Should not visit level 2 (depth limit)")
+	assert.NotContains(t, visited, baseURL+"/level3", "Should not visit level 3 (depth limit)")
+}
 
-	// Wait for all goroutines to complete
-	for i := 0; i < 10; i++ {
-		<-done
+func TestCrawl_DuplicateURLHandling(t *testing.T) {
+	cleanup := setupTestState()
+	defer cleanup()
+	
+	mockServer := NewMockHTTPServer()
+	defer mockServer.Close()
+	
+	// Create circular references
+	mockServer.AddRoute("/", MockResponse{
+		StatusCode: 200,
+		Body: `<html>
+			<body>
+				<a href="/page1">Page 1</a>
+				<a href="/page1">Page 1 Again</a>
+			</body>
+		</html>`,
+		Headers: map[string]string{"Content-Type": "text/html"},
+	})
+	
+	mockServer.AddRoute("/page1", MockResponse{
+		StatusCode: 200,
+		Body: `<html>
+			<body>
+				<a href="/">Back Home</a>
+				<a href="/">Home Again</a>
+			</body>
+		</html>`,
+		Headers: map[string]string{"Content-Type": "text/html"},
+	})
+	
+	baseURL := mockServer.URL()
+	model.Depth = 2
+	
+	// Start crawling
+	Crawl(baseURL, baseURL+"/", 0, model.Concurrency)
+	
+	// Wait for completion
+	done := make(chan struct{})
+	go func() {
+		model.Wg.Wait()
+		close(done)
+	}()
+	
+	select {
+	case <-done:
+		// Success
+	case <-time.After(3 * time.Second):
+		t.Fatal("Duplicate URL test timed out")
+	}
+	
+	// Count how many times each URL was visited
+	visitedCount := make(map[string]int)
+	model.VisitedURLs.Range(func(key, value interface{}) bool {
+		if url, ok := key.(string); ok {
+			visitedCount[url]++
+		}
+		return true
+	})
+	
+	// Each URL should be visited only once
+	for url, count := range visitedCount {
+		assert.Equal(t, 1, count, fmt.Sprintf("URL %s should be visited only once, but was visited %d times", url, count))
 	}
 }

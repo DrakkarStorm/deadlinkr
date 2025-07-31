@@ -20,17 +20,24 @@ var scanCmd = &cobra.Command{
 
 		logger.Debugf("Starting scan of %s with depth %d", baseURL, model.Depth)
 
-		// Start crawling
-		utils.Crawl(baseURL, baseURL, 0, model.Concurrency)
-
-		// Wait for all crawling to complete
-		model.Wg.Wait()
+		// Use optimized crawler by default
+		err := utils.CrawlWithOptimizedServices(baseURL, baseURL, 0)
+		if err != nil {
+			logger.Errorf("Error during scan: %s", err)
+			return
+		}
 
 		logger.Infof("Scan complete. Found %d links, %d broken.\n", len(model.Results), utils.CountBrokenLinks())
 
-		logger.Debugf("Exporting results to %s", model.Format)
-		if model.Format != "" {
-			utils.ExportResults(model.Format)
+		// Auto-detect format from output file if not specified
+		format := model.Format
+		if format == "" && model.Output != "" {
+			format = utils.DetectFormatFromOutput(model.Output)
+		}
+
+		logger.Debugf("Exporting results with format: %s, output: %s", format, model.Output)
+		if format != "" || model.Output != "" {
+			utils.ExportResults(format)
 		}
 	},
 }
@@ -38,9 +45,7 @@ var scanCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(scanCmd)
 
-	scanCmd.PersistentFlags().IntVar(&model.Concurrency, "concurrency", 20, "Number of concurrent requests")
-	// Define a flag for the export format
-	scanCmd.Flags().StringVar(&model.Format, "format", "html", "Export format (csv, json, html)")
-	scanCmd.PersistentFlags().IntVar(&model.Depth, "depth", 1, "Maximum crawl depth")
+	scanCmd.PersistentFlags().IntVarP(&model.Concurrency, "concurrency", "c", 20, "Number of concurrent requests")
+	scanCmd.PersistentFlags().IntVarP(&model.Depth, "depth", "d", 1, "Maximum crawl depth")
 
 }

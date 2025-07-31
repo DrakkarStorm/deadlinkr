@@ -45,7 +45,7 @@ func init() {
 
     rootCmd.PersistentFlags().StringVar(&model.LogLevel, "log-level", "info", "Log level (debug, info, warn, error, fatal)")
 
-	rootCmd.PersistentFlags().IntVar(&model.Timeout, "timeout", 10, "Request timeout in seconds")
+	rootCmd.PersistentFlags().IntVarP(&model.Timeout, "timeout", "t", 15, "Request timeout in seconds")
 
 	rootCmd.PersistentFlags().BoolVar(&model.OnlyInternal, "only-internal", false, "Check only internal links")
 
@@ -54,11 +54,26 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&model.IncludePattern, "include-pattern", "", "Only include URLs matching this regex")
 	rootCmd.PersistentFlags().StringVar(&model.ExcludePattern, "exclude-pattern", "", "Exclude URLs matching this regex")
 
-	// for sre-docs you can use "div.md-sidebar__scrollwrap a[href]" to skip the menu on left
 	rootCmd.PersistentFlags().StringVar(&model.ExcludeHtmlTags, "exclude-html-tags", "", "Exclude specific HTML tags separated by commas")
 
-	rootCmd.PersistentFlags().BoolVar(&model.DisplayOnlyError, "display-only-error", true, "Display only error")
-	rootCmd.PersistentFlags().BoolVar(&model.DisplayOnlyExternal, "display-only-external", false, "Display only external")
+	rootCmd.PersistentFlags().BoolVar(&model.ShowAll, "show-all", false, "Show all links including working ones (default: only broken links)")
+	rootCmd.PersistentFlags().BoolVar(&model.DisplayOnlyExternal, "only-external", false, "Show only external links")
 
-	rootCmd.PersistentFlags().StringVar(&model.Output, "output", "", "The path of output file (csv or json or html)")
+	rootCmd.PersistentFlags().StringVarP(&model.Output, "output", "o", "", "Output file path (format auto-detected from extension: .csv, .json, .html)")
+	rootCmd.PersistentFlags().StringVarP(&model.Format, "format", "f", "", "Export format (csv, json, html) - overrides auto-detection from output file")
+
+	rootCmd.PersistentFlags().Float64Var(&model.RateLimitRequestsPerSecond, "rate-limit", 2.0, "Requests per second per domain")
+	rootCmd.PersistentFlags().Float64Var(&model.RateLimitBurst, "rate-burst", 5.0, "Burst capacity for rate limiting")
+
+	rootCmd.PersistentFlags().BoolVar(&model.OptimizeWithHeadRequests, "optimize-head", true, "Use HEAD requests when possible to reduce bandwidth")
+
+	rootCmd.PersistentFlags().BoolVar(&model.CacheEnabled, "cache", true, "Enable intelligent caching of link check results")
+	rootCmd.PersistentFlags().IntVar(&model.CacheSize, "cache-size", 1000, "Maximum number of entries in the cache")
+	rootCmd.PersistentFlags().IntVar(&model.CacheTTLMinutes, "cache-ttl", 60, "Cache time-to-live in minutes")
+
+	// Authentication flags
+	rootCmd.PersistentFlags().StringVar(&model.AuthBasic, "auth-basic", "", "Basic authentication in 'user:password' format (or use DEADLINKR_AUTH_USER/DEADLINKR_AUTH_PASS env vars)")
+	rootCmd.PersistentFlags().StringVar(&model.AuthBearer, "auth-bearer", "", "Bearer token authentication (or use DEADLINKR_AUTH_TOKEN env var)")
+	rootCmd.PersistentFlags().StringArrayVar(&model.AuthHeaders, "auth-header", []string{}, "Custom authentication headers in 'Key: Value' format (can be used multiple times)")
+	rootCmd.PersistentFlags().StringVar(&model.AuthCookies, "auth-cookies", "", "Cookie authentication string")
 }

@@ -48,10 +48,10 @@ func setupTest() func() {
 		logger.CloseLogger()
 
 		// Clean up test files
-		os.Remove("deadlinkr-report.csv")
-		os.Remove("deadlinkr-report.json")
-		os.Remove("deadlinkr-report.html")
-		os.Remove("deadlinkr.log")
+		_ = os.Remove("deadlinkr-report.csv")
+		_ = os.Remove("deadlinkr-report.json")
+		_ = os.Remove("deadlinkr-report.html")
+		_ = os.Remove("deadlinkr.log")
 	}
 }
 
@@ -110,7 +110,7 @@ func TestDisplayResults(t *testing.T) {
 			DisplayResults()
 
 			// Restore stdout and get output
-			w.Close()
+			_ = w.Close()
 			os.Stdout = origStdout
 			_, err := io.Copy(&buf, r)
 			if err != nil {
@@ -147,7 +147,7 @@ func TestExportToCSV(t *testing.T) {
 	ExportResults("csv")
 
 	// Restore stdout
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 	_, err := io.Copy(&buf, r)
 	require.NoError(t, err)
@@ -159,7 +159,11 @@ func TestExportToCSV(t *testing.T) {
 	// Read and verify file content
 	file, err := os.Open("deadlinkr-report.csv")
 	require.NoError(t, err)
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			t.Errorf("Error closing test file: %v", err)
+		}
+	}()
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
@@ -209,7 +213,7 @@ func TestExportToJSON(t *testing.T) {
 	ExportResults("json")
 
 	// Restore stdout
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 	_, err := io.Copy(&buf, r)
 	require.NoError(t, err)
@@ -256,7 +260,7 @@ func TestExportResults(t *testing.T) {
 	ExportResults("xml")
 
 	// Restore stdout and read output
-	w.Close()
+	_ = w.Close()
 	os.Stdout = oldStdout
 	_, err := io.Copy(&buf, r)
 	require.NoError(t, err, "Failed to read output")
@@ -264,4 +268,192 @@ func TestExportResults(t *testing.T) {
 
 	// Verify error message for unsupported format
 	assert.Contains(t, output, "Unsupported format: xml. Use csv, json, or html")
+}
+
+// TestExportToHTML tests the HTML export functionality specifically
+func TestExportToHTML(t *testing.T) {
+	teardown := setupTest()
+	defer teardown()
+
+	// Set up test data with various scenarios
+	model.Results = []model.LinkResult{
+		{
+			SourceURL:  SOURCE_URL,
+			TargetURL:  "http://good.com",
+			Status:     200,
+			Error:      "",
+			IsExternal: true,
+		},
+		{
+			SourceURL:  SOURCE_URL,
+			TargetURL:  "http://redirect.com",
+			Status:     301,
+			Error:      "",
+			IsExternal: true,
+		},
+		{
+			SourceURL:  SOURCE_URL,
+			TargetURL:  "http://broken.com",
+			Status:     404,
+			Error:      "",
+			IsExternal: true,
+		},
+		{
+			SourceURL:  SOURCE_URL,
+			TargetURL:  "http://error.com",
+			Status:     0,
+			Error:      "Connection failed",
+			IsExternal: false,
+		},
+	}
+
+	// Configure to show all links (not just errors)
+	originalShowAll := model.ShowAll
+	model.ShowAll = true
+	defer func() { model.ShowAll = originalShowAll }()
+
+	// Test HTML export
+	ExportResults("html")
+
+	// Verify file was created
+	_, err := os.Stat("deadlinkr-report.html")
+	require.NoError(t, err, "HTML file should be created")
+
+	// Read and verify file content
+	content, err := os.ReadFile("deadlinkr-report.html")
+	require.NoError(t, err)
+
+	htmlContent := string(content)
+
+	// Verify HTML structure
+	assert.Contains(t, htmlContent, "<!DOCTYPE html>")
+	assert.Contains(t, htmlContent, "<title>DeadLinkr Report</title>")
+	assert.Contains(t, htmlContent, "<h1>DeadLinkr Report</h1>")
+	
+	// Verify statistics
+	assert.Contains(t, htmlContent, "Total links checked: 4")
+	assert.Contains(t, htmlContent, "Broken links found: 2") // 404 + error
+
+	// Verify table headers
+	assert.Contains(t, htmlContent, "<th>Source URL</th>")
+	assert.Contains(t, htmlContent, "<th>Target URL</th>")
+	assert.Contains(t, htmlContent, "<th>Status</th>")
+	assert.Contains(t, htmlContent, "<th>Error</th>")
+	assert.Contains(t, htmlContent, "<th>Type</th>")
+
+	// Verify link data is present
+	assert.Contains(t, htmlContent, "http://good.com")
+	assert.Contains(t, htmlContent, "http://broken.com")
+	assert.Contains(t, htmlContent, "Connection failed")
+
+	// Verify CSS classes are applied
+	assert.Contains(t, htmlContent, "class=\"good\"")
+	assert.Contains(t, htmlContent, "class=\"warning\"")
+	assert.Contains(t, htmlContent, "class=\"error\"")
+
+	// Verify link types
+	assert.Contains(t, htmlContent, "External")
+	assert.Contains(t, htmlContent, "Internal")
+}
+
+// TestExportHTMLWithFilters tests HTML export with display filters
+func TestExportHTMLWithFilters(t *testing.T) {
+	teardown := setupTest()
+	defer teardown()
+
+	// Set up test data
+	model.Results = []model.LinkResult{
+		{
+			SourceURL:  SOURCE_URL,
+			TargetURL:  "http://internal.com",
+			Status:     200,
+			Error:      "",
+			IsExternal: false,
+		},
+		{
+			SourceURL:  SOURCE_URL,
+			TargetURL:  "http://external.com",
+			Status:     404,
+			Error:      "",
+			IsExternal: true,
+		},
+	}
+
+	t.Run("Display only external links", func(t *testing.T) {
+		model.DisplayOnlyExternal = true
+		model.ShowAll = true
+		defer func() {
+			model.DisplayOnlyExternal = false
+			model.ShowAll = false
+		}()
+
+		ExportResults("html")
+
+		content, err := os.ReadFile("deadlinkr-report.html")
+		require.NoError(t, err)
+		htmlContent := string(content)
+
+		// Should contain external link
+		assert.Contains(t, htmlContent, "http://external.com")
+		// Should not contain internal link (filtered out)
+		assert.NotContains(t, htmlContent, "http://internal.com")
+	})
+
+	t.Run("Display only errors", func(t *testing.T) {
+		model.ShowAll = false
+		model.DisplayOnlyExternal = false
+		defer func() {
+			model.ShowAll = false
+		}()
+
+		ExportResults("html")
+
+		content, err := os.ReadFile("deadlinkr-report.html")
+		require.NoError(t, err)
+		htmlContent := string(content)
+
+		// Should contain error link (404)
+		assert.Contains(t, htmlContent, "http://external.com")
+		// Should not contain good link (200)
+		assert.NotContains(t, htmlContent, "http://internal.com")
+	})
+}
+
+// TestExportHTMLWithCustomOutput tests HTML export with custom output path
+func TestExportHTMLWithCustomOutput(t *testing.T) {
+	teardown := setupTest()
+	defer teardown()
+
+	// Set custom output path
+	model.Output = "custom-report.html"
+	defer func() {
+		model.Output = ""
+		_ = os.Remove("custom-report.html")
+	}()
+
+	model.Results = []model.LinkResult{
+		{
+			SourceURL:  SOURCE_URL,
+			TargetURL:  "http://test.com",
+			Status:     200,
+			Error:      "",
+			IsExternal: false,
+		},
+	}
+
+	// Configure to show all links (not just errors)
+	originalShowAll := model.ShowAll
+	model.ShowAll = true
+	defer func() { model.ShowAll = originalShowAll }()
+
+	ExportResults("html")
+
+	// Verify custom file was created
+	_, err := os.Stat("custom-report.html")
+	require.NoError(t, err, "Custom HTML file should be created")
+
+	// Verify content
+	content, err := os.ReadFile("custom-report.html")
+	require.NoError(t, err)
+	assert.Contains(t, string(content), "http://test.com")
 }

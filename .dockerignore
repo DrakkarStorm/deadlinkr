@@ -1,0 +1,53 @@
+# Build artifacts
+build/
+coverage/
+*.out
+*.log
+*.html
+
+# Development files
+.git/
+.github/
+.vscode/
+.idea/
+*.md
+CHANGELOG.md
+CLAUDE.md
+
+# Test files
+tests/
+*_test.go
+test_*
+
+# Dependencies (will be downloaded in container)
+vendor/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# Node.js (for semantic-release)
+node_modules/
+package*.json
+
+# Temporary files
+tmp/
+temp/
+deadlinkr-report.html
+results.json
+deadlinkr.log
+
+# Example files
+examples/
+docs/
+
+# Configuration files that shouldn't be in image
+.env
+.env.local
+config.yaml
+deadlinkr.yaml

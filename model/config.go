@@ -35,10 +35,13 @@ var ExcludePattern string
 // ExcludeHtmlTags is the list of HTML tags
 var ExcludeHtmlTags string
 
-// displayOnlyError indicates whether to display only error
-var DisplayOnlyError bool
+// DisplayOnlyError indicates whether to display only error (legacy - inverted logic)
+var DisplayOnlyError bool = true
 
-// DisplayOnlyExternal indicates whether to display only ext
+// ShowAll indicates whether to show all links including working ones
+var ShowAll bool
+
+// DisplayOnlyExternal indicates whether to display only external links
 var DisplayOnlyExternal bool
 
 // Format is the export format for results
@@ -61,3 +64,27 @@ var TimeExecution time.Time
 
 // Output is the output file for the results
 var Output string
+
+// RateLimitRequestsPerSecond is the default rate limit per domain
+var RateLimitRequestsPerSecond float64 = 2.0
+
+// RateLimitBurst is the burst capacity for rate limiting
+var RateLimitBurst float64 = 5.0
+
+// OptimizeWithHeadRequests enables HEAD request optimization
+var OptimizeWithHeadRequests bool = true
+
+// CacheEnabled enables link result caching
+var CacheEnabled bool = true
+
+// CacheSize is the maximum number of entries in the cache
+var CacheSize int = 1000
+
+// CacheTTL is the default cache time-to-live in minutes
+var CacheTTLMinutes int = 60
+
+// Authentication settings
+var AuthBasic string       // Basic auth in "user:password" format
+var AuthBearer string      // Bearer token
+var AuthHeaders []string   // Custom headers in "Key: Value" format
+var AuthCookies string     // Cookies string

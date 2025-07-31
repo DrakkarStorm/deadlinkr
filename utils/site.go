@@ -94,7 +94,11 @@ func fetchAndParseDocument(pageURL string) *goquery.Document {
 		logger.Errorf("Failed to fetch %s after %d retries: %s", pageURL, retry, err)
 		return nil
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Errorf("Error closing response body for %s: %s", pageURL, err)
+		}
+	}()
 
 	if !strings.Contains(resp.Header.Get("Content-Type"), "text/html") {
 		return nil

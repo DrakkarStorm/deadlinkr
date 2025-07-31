@@ -49,7 +49,11 @@ func CheckLink(linkURL string) (int, string) {
 	if err != nil {
 		return 0, err.Error()
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Errorf("Error closing response body for %s: %s", linkURL, err)
+		}
+	}()
 
 	// Analyse the MIME type to detect files
 	contentType := resp.Header.Get("Content-Type")
