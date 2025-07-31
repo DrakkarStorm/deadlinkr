@@ -50,7 +50,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}
             tavernetech/deadlinkr
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
@@ -131,10 +131,10 @@ jobs:
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
           docker manifest create \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}-linux/amd64 \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}-linux/arm64
-          docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}
+            ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}:${TAG} \
+            ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}:${TAG}-linux/amd64 \
+            ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}:${TAG}-linux/arm64
+          docker manifest push ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}:${TAG}
 
       - name: 🔗 Create and push multi-arch manifest (Docker Hub)
         run: |
@@ -159,7 +159,7 @@ jobs:
       - name: 🛡️ Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          image-ref: ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}:latest
           format: 'sarif'
           output: 'trivy-results.sarif'
 
@@ -173,7 +173,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          image: ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}:latest
           args: --severity-threshold=high
 
   # ==============================================================================

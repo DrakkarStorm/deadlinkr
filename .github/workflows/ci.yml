@@ -152,7 +152,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY }}/${{ lower(env.IMAGE_NAME) }}
             tavernetech/deadlinkr
           tags: |
             type=ref,event=branch
