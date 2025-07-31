@@ -178,6 +178,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: 🏗️ Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -188,9 +189,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          load: true
 
       - name: 🛡️ Run Trivy vulnerability scanner
-        if: github.event_name != 'pull_request'
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
