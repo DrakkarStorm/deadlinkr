@@ -51,7 +51,7 @@ jobs:
         with:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            deadlinkr/deadlinkr
+            tavernetech/deadlinkr
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
@@ -140,10 +140,10 @@ jobs:
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
           docker manifest create \
-            deadlinkr/deadlinkr:${TAG} \
-            deadlinkr/deadlinkr:${TAG}-linux/amd64 \
-            deadlinkr/deadlinkr:${TAG}-linux/arm64
-          docker manifest push deadlinkr/deadlinkr:${TAG}
+            tavernetech/deadlinkr:${TAG} \
+            tavernetech/deadlinkr:${TAG}-linux/amd64 \
+            tavernetech/deadlinkr:${TAG}-linux/arm64
+          docker manifest push tavernetech/deadlinkr:${TAG}
 
   # ==============================================================================
   # 🛡️ Security Scanning
@@ -194,5 +194,5 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: deadlinkr/deadlinkr
+          repository: tavernetech/deadlinkr
           readme-filepath: ./README.md
