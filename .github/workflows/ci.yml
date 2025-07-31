@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -84,7 +84,7 @@ jobs:
     name: 🏗️ Build Binaries
     runs-on: ubuntu-latest
     needs: test
-    
+
     strategy:
       matrix:
         include:
@@ -153,7 +153,7 @@ jobs:
         with:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            deadlinkr/deadlinkr
+            tavernetech/deadlinkr
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -268,7 +268,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release]
     if: always()
-    
+
     steps:
       - name: 🗑️ Delete old artifacts
         uses: geekyeggo/delete-artifact@v4
