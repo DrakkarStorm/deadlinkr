@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/DrakkarStorm/deadlinkr/compare/v1.1.0...v1.2.0) (2025-08-01)
+
+
+### Features
+
+* add version command with build information ([998414f](https://github.com/DrakkarStorm/deadlinkr/commit/998414f850403cc099e6b5f542c3494d7871ec90))
+
 # [1.1.0](https://github.com/DrakkarStorm/deadlinkr/compare/v1.0.2...v1.1.0) (2025-08-01)
 
 
