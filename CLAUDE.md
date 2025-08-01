@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Rules
+
+When working with this repository, follow these rules:
+- never commit with your signature
+- never add tag comment with your signature
+
 ## Commands
 
 ### Development Commands

@@ -132,8 +132,8 @@ jobs:
           TAG="${{ steps.tag.outputs.tag }}"
           docker manifest create \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}-linux/amd64 \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}-linux/arm64
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}-linux-amd64 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}-linux-arm64
           docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}
 
       - name: 🔗 Create and push multi-arch manifest (Docker Hub)
@@ -141,8 +141,8 @@ jobs:
           TAG="${{ steps.tag.outputs.tag }}"
           docker manifest create \
             tavernetech/deadlinkr:${TAG} \
-            tavernetech/deadlinkr:${TAG}-linux/amd64 \
-            tavernetech/deadlinkr:${TAG}-linux/arm64
+            tavernetech/deadlinkr:${TAG}-linux-amd64 \
+            tavernetech/deadlinkr:${TAG}-linux-arm64
           docker manifest push tavernetech/deadlinkr:${TAG}
 
   # ==============================================================================
