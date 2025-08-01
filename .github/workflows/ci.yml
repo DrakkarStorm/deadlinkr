@@ -115,10 +115,15 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
         run: |
           mkdir -p build
+          VERSION=$(git describe --tags --always --dirty)
+          COMMIT=$(git rev-parse --short HEAD)
+          BUILD_DATE=$(date -u '+%Y-%m-%d_%H:%M:%S')
+          LDFLAGS="-s -w -X 'github.com/DrakkarStorm/deadlinkr/cmd.Version=${VERSION}' -X 'github.com/DrakkarStorm/deadlinkr/cmd.Commit=${COMMIT}' -X 'github.com/DrakkarStorm/deadlinkr/cmd.BuildDate=${BUILD_DATE}'"
+          
           if [ "$GOOS" = "windows" ]; then
-            go build -ldflags="-s -w" -o build/deadlinkr-${{ matrix.goos }}-${{ matrix.goarch }}.exe .
+            go build -ldflags="${LDFLAGS}" -o build/deadlinkr-${{ matrix.goos }}-${{ matrix.goarch }}.exe .
           else
-            go build -ldflags="-s -w" -o build/deadlinkr-${{ matrix.goos }}-${{ matrix.goarch }} .
+            go build -ldflags="${LDFLAGS}" -o build/deadlinkr-${{ matrix.goos }}-${{ matrix.goarch }} .
           fi
 
       - name: 📤 Upload build artifacts

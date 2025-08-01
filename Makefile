@@ -5,13 +5,18 @@ BINARY_NAME=deadlinkr
 GO=go
 GOLANGCI_LINT=golangci-lint
 
+# version information
+VERSION=$(shell git describe --tags --always --dirty)
+COMMIT=$(shell git rev-parse --short HEAD)
+BUILD_DATE=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
+
 # directories
 SRC_DIR=.
 BUILD_DIR=./build
 COVERAGE_DIR=./coverage
 
 # compilation options
-LDFLAGS=-ldflags "-s -w"
+LDFLAGS=-ldflags "-s -w -X 'github.com/DrakkarStorm/deadlinkr/cmd.Version=$(VERSION)' -X 'github.com/DrakkarStorm/deadlinkr/cmd.Commit=$(COMMIT)' -X 'github.com/DrakkarStorm/deadlinkr/cmd.BuildDate=$(BUILD_DATE)'"
 
 # default target
 .PHONY: all
