@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/DrakkarStorm/deadlinkr/compare/v1.0.2...v1.1.0) (2025-08-01)
+
+
+### Features
+
+* **ci:** enable automatic release workflow on tag push ([46b0880](https://github.com/DrakkarStorm/deadlinkr/commit/46b088029191fb470cfa71a938d4fedf593e8edd))
+
 ## [0.4.1](https://github.com/DrakkarStorm/deadlinkr/compare/v0.4.0...v0.4.1) (2025-06-19)
 
 
