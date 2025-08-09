@@ -41,7 +41,7 @@ jobs:
       - name: 🐹 Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.5'
+          go-version: '1.24.6'
 
       - name: 🏗️ Build application
         run: |
@@ -67,7 +67,7 @@ jobs:
       - name: 🐹 Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.5'
+          go-version: '1.24.6'
 
       - name: 🛡️ Run Gosec Security Scanner (SARIF)
         uses: securego/gosec@master
@@ -111,7 +111,7 @@ jobs:
       - name: 🐹 Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.5'
+          go-version: '1.24.6'
 
       - name: 🔍 Run govulncheck vulnerability scanner
         uses: golang/govulncheck-action@v1
@@ -163,7 +163,7 @@ jobs:
       - name: 🐹 Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.5'
+          go-version: '1.24.6'
 
       - name: 🔒 Install go-licenses
         run: go install github.com/google/go-licenses@latest
