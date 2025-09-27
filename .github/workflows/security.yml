@@ -15,6 +15,9 @@ permissions:
   contents: read
   security-events: write
 
+env:
+  ACTIONS_RUNNER_DEBUG: true
+
 jobs:
   # ==============================================================================
   # 🔍 Code Security Analysis
@@ -73,6 +76,13 @@ jobs:
         uses: securego/gosec@master
         with:
           args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
+
+      - name: 📤 Upload Gosec SARIF reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: gosec-sarif
+          path: |
+            gosec-results.sarif
 
       - name: 📊 Generate Gosec JSON report
         uses: securego/gosec@master
