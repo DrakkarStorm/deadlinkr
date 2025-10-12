@@ -95,7 +95,25 @@ func exportToCSV() {
 		filename = model.Output
 	}
 
-	file, err := os.Create(filename)
+	// Create a root scoped to current working directory to prevent directory traversal
+	cwd, err := os.Getwd()
+	if err != nil {
+		logger.Errorf("Error getting working directory: %s\n", err)
+		return
+	}
+
+	root, err := os.OpenRoot(cwd)
+	if err != nil {
+		logger.Errorf("Error creating root scope: %s\n", err)
+		return
+	}
+	defer func() {
+		if err := root.Close(); err != nil {
+			logger.Errorf("Error closing root scope: %s\n", err)
+		}
+	}()
+
+	file, err := root.Create(filename)
 	if err != nil {
 		logger.Errorf("Error creating CSV file: %s\n", err)
 		return
@@ -149,7 +167,25 @@ func exportToJSON() {
 		filename = model.Output
 	}
 
-	file, err := os.Create(filename)
+	// Create a root scoped to current working directory to prevent directory traversal
+	cwd, err := os.Getwd()
+	if err != nil {
+		logger.Errorf("Error getting working directory: %s\n", err)
+		return
+	}
+
+	root, err := os.OpenRoot(cwd)
+	if err != nil {
+		logger.Errorf("Error creating root scope: %s\n", err)
+		return
+	}
+	defer func() {
+		if err := root.Close(); err != nil {
+			logger.Errorf("Error closing root scope: %s\n", err)
+		}
+	}()
+
+	file, err := root.Create(filename)
 	if err != nil {
 		logger.Errorf("Error creating JSON file: %s\n", err)
 		return
@@ -177,7 +213,25 @@ func exportToHTML() {
 		filename = model.Output
 	}
 
-	file, err := os.Create(filename)
+	// Create a root scoped to current working directory to prevent directory traversal
+	cwd, err := os.Getwd()
+	if err != nil {
+		logger.Errorf("Error getting working directory: %s\n", err)
+		return
+	}
+
+	root, err := os.OpenRoot(cwd)
+	if err != nil {
+		logger.Errorf("Error creating root scope: %s\n", err)
+		return
+	}
+	defer func() {
+		if err := root.Close(); err != nil {
+			logger.Errorf("Error closing root scope: %s\n", err)
+		}
+	}()
+
+	file, err := root.Create(filename)
 	if err != nil {
 		logger.Errorf("Error creating HTML file: %s\n", err)
 		return

@@ -39,27 +39,55 @@ func InitLogger(level string) {
 		logLevel = StringToLogLevel(level)
 
 		var logFilePath string
+		var logDir string
 
 		switch runtime.GOOS {
 		case "linux", "darwin":
-			logFilePath = "/var/log/deadlinkr.log"
+			logDir = "/var/log"
+			logFilePath = "deadlinkr.log"
 		case "windows":
-			logFilePath = filepath.Join(os.Getenv("LOCALAPPDATA"), "deadlinkr", "deadlinkr.log")
+			logDir = filepath.Join(os.Getenv("LOCALAPPDATA"), "deadlinkr")
+			logFilePath = "deadlinkr.log"
 		default:
 			// For other operating systems, use a default directory
-			logFilePath = filepath.Join(os.TempDir(), "deadlinkr.log")
+			logDir = os.TempDir()
+			logFilePath = "deadlinkr.log"
 		}
 
-		logFile, err := os.Create(logFilePath)
-		if err != nil {
-			// If we can't create the log file in the specified directory, fall back to the current directory.
-			logFilePath = "deadlinkr.log"
-			logFile, err = os.Create(logFilePath)
-			if err != nil {
-				log.Fatalf("Failed to create log file: %v", err)
+		// Try to create log file using os.Root for the specified directory
+		root, err := os.OpenRoot(logDir)
+		if err == nil {
+			logFile, err = root.Create(logFilePath)
+			if err == nil {
+				fmt.Println("Logging to:", filepath.Join(logDir, logFilePath))
+				logger = log.New(logFile, "", log.LstdFlags)
+				_ = root.Close()
+				return
 			}
+			_ = root.Close()
 		}
-		fmt.Println("Logging to:", logFilePath)
+
+		// If we can't create the log file in the specified directory, fall back to the current directory
+		cwd, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("Failed to get working directory: %v", err)
+		}
+
+		root, err = os.OpenRoot(cwd)
+		if err != nil {
+			log.Fatalf("Failed to create root scope: %v", err)
+		}
+		defer func() {
+			if err := root.Close(); err != nil {
+				log.Printf("Error closing root scope: %v", err)
+			}
+		}()
+
+		logFile, err = root.Create("deadlinkr.log")
+		if err != nil {
+			log.Fatalf("Failed to create log file: %v", err)
+		}
+		fmt.Println("Logging to:", filepath.Join(cwd, "deadlinkr.log"))
 
 		logger = log.New(logFile, "", log.LstdFlags)
 	}
