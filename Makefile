@@ -43,8 +43,6 @@ deps:
 tools:
 	@echo "🛠️ Installing development tools..."
 	@$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@$(GO) install github.com/axw/gocov/gocov@latest
-	@$(GO) install github.com/matm/gocov-html/cmd/gocov-html@latest
 
 # Linter
 .PHONY: lint
@@ -67,7 +65,7 @@ test:
 coverage: test
 	@echo "📊 Generating coverage report..."
 	@$(GO) tool cover -func=$(COVERAGE_DIR)/coverage.out
-	@gocov convert $(COVERAGE_DIR)/coverage.out | gocov-html > $(COVERAGE_DIR)/coverage.html
+	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
 	@echo "Report generated in $(COVERAGE_DIR)/coverage.html"
 
 # Build binary
