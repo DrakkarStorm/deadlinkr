@@ -4,7 +4,8 @@
 FROM golang:1.25.5-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git ca-certificates tzdata
+# Use --no-scripts to avoid busybox trigger issues with QEMU emulation
+RUN apk add --no-cache --no-scripts git ca-certificates tzdata
 
 # Set working directory
 WORKDIR /app
