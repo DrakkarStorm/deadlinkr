@@ -1,6 +1,6 @@
 module github.com/DrakkarStorm/deadlinkr
 
-go 1.25.3
+go 1.25.5
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.2
