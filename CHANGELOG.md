@@ -1,3 +1,11 @@
+## [1.2.1](https://github.com/DrakkarStorm/deadlinkr/compare/v1.2.0...v1.2.1) (2025-12-04)
+
+
+### Bug Fixes
+
+* **docker:** skip apk scripts to fix multi-arch build with QEMU ([352408c](https://github.com/DrakkarStorm/deadlinkr/commit/352408cda08d9a0181881ec8bce569fcdcf3213e))
+* **docker:** update Alpine package cache before installing dependencies ([7e8b3df](https://github.com/DrakkarStorm/deadlinkr/commit/7e8b3dff808bdf03d5a3add992fdba043d617d03))
+
 # [1.2.0](https://github.com/DrakkarStorm/deadlinkr/compare/v1.1.0...v1.2.0) (2025-08-01)
 
 
