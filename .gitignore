@@ -65,9 +65,3 @@ go.work
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,go,git
-
-# npm
-node_modules/
-npm-debug.log
-yarn-error.log
-yarn.lock
