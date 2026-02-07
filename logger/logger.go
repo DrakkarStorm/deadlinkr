@@ -36,6 +36,9 @@ var logFile *os.File
 
 func InitLogger(level string) {
 	if !model.Quiet {
+		// Close any previously opened log file to avoid resource leaks
+		CloseLogger()
+
 		logLevel = StringToLogLevel(level)
 
 		var logFilePath string
@@ -115,6 +118,7 @@ func CloseLogger() {
 		if err := logFile.Close(); err != nil {
 			log.Printf("Error closing log file: %v", err)
 		}
+		logFile = nil
 	}
 }
 
